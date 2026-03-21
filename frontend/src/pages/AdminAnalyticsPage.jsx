@@ -17,7 +17,7 @@ function AdminAnalyticsPage() {
     try {
       const data = await adminApi.getAnalytics();
       setAnalytics(data.analytics);
-    } catch (error) {
+    } catch {
       toast.error("Failed to load analytics");
     } finally {
       setLoading(false);

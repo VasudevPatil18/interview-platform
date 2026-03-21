@@ -1,10 +1,10 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import axios from "../lib/axios";
 import toast from "react-hot-toast";
-import { Axios } from "axios";
 
 const AuthContext = createContext();
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

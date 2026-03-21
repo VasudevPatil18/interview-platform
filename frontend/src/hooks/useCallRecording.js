@@ -92,7 +92,7 @@ function useCallRecording() {
       console.error("Error starting recording:", error);
       toast.error("Failed to start recording. Please allow screen sharing.");
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Stop recording
   const stopRecording = useCallback(() => {

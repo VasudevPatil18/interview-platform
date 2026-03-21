@@ -9,7 +9,7 @@ function Navbar() {
   const location = useLocation();
   const { user, logout } = useAuth();
   const isMobile = useIsMobile();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false); // eslint-disable-line no-unused-vars
   const [theme, setTheme] = useState(() => {
     // Get theme from localStorage or default to 'dark'
     return localStorage.getItem("theme") || "dark";

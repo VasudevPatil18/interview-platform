@@ -1,10 +1,11 @@
 import express from "express";
 import { protectRoute } from "../middleware/protectRoute.js";
-import { submitFeedback, checkFeedback } from "../controllers/feedbackController.js";
+import { submitFeedback, checkFeedback, getSessionFeedback } from "../controllers/feedbackController.js";
 
 const router = express.Router();
 
 router.post("/", protectRoute, submitFeedback);
-router.get("/check/:sessionid", protectRoute, checkFeedback);
+router.get("/check/:sessionId", protectRoute, checkFeedback);
+router.get("/received/:sessionId", protectRoute, getSessionFeedback);
 
 export default router;

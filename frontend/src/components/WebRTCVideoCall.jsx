@@ -17,9 +17,10 @@ import {
   CopyIcon,
   CheckIcon,
 } from 'lucide-react';
-import { useWebRTC } from '../hooks/useWebRTC';
 
-function WebRTCVideoCall({ session, user, isHost, isParticipant, currentCode, currentLanguage }) {
+// WebRTCVideoCall now receives the webrtc hook result as a prop
+// so the parent (SessionPage) can share the same socket/encryption instance
+function WebRTCVideoCall({ user, webrtc, currentCode, currentLanguage }) {
   const navigate = useNavigate();
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
@@ -42,7 +43,7 @@ function WebRTCVideoCall({ session, user, isHost, isParticipant, currentCode, cu
     stopScreenShare,
     sendMessage,
     leaveCall,
-  } = useWebRTC(session, user, isHost, isParticipant);
+  } = webrtc;
 
   // Set local video stream
   useEffect(() => {

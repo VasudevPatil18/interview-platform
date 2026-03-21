@@ -1,55 +1,54 @@
 function Footer() {
   return (
-    <footer className="bg-black-900 text-gray-300 py-10 mt-10">
+    <footer className="bg-base-200 text-base-content border-t border-base-300 py-10 mt-10">
       <div className="max-w-7xl mx-auto px-5 grid md:grid-cols-4 gap-8">
 
         {/* Brand */}
         <div>
-          <h2 className="text-2xl font-bold text-white">VideoConferncing</h2>
-          <p className="mt-3 text-sm">
+          <h2 className="text-2xl font-bold text-base-content">Talent IQ</h2>
+          <p className="mt-3 text-sm text-base-content/60">
             High-quality video conferencing for meetings, webinars, and collaboration.
           </p>
         </div>
 
         {/* Features */}
         <div>
-          <h3 className="text-white font-semibold mb-3">Features</h3>
-          <ul className="space-y-2 text-sm">
+          <h3 className="font-semibold mb-3 text-base-content">Features</h3>
+          <ul className="space-y-2 text-sm text-base-content/60">
             <li>HD Video Calls</li>
             <li>Screen Sharing</li>
-            <li>Chat & Messaging</li>
+            <li>Chat &amp; Messaging</li>
             <li>Recording</li>
           </ul>
         </div>
 
         {/* Company */}
         <div>
-          <h3 className="text-white font-semibold mb-3">Company</h3>
-          <ul className="space-y-2 text-sm">
+          <h3 className="font-semibold mb-3 text-base-content">Company</h3>
+          <ul className="space-y-2 text-sm text-base-content/60">
             <li>About Us</li>
             <li>Careers</li>
             <li>Privacy Policy</li>
-            <li>Terms & Conditions</li>
+            <li>Terms &amp; Conditions</li>
           </ul>
         </div>
 
         {/* Social */}
         <div>
-          <h3 className="text-white font-semibold mb-3">Connect</h3>
-          <div className="flex gap-4">
-            <a href="#" className="hover:text-white">Facebook</a>
-            <a href="#" className="hover:text-white">Twitter</a>
-            <a href="#" className="hover:text-white">LinkedIn</a>
+          <h3 className="font-semibold mb-3 text-base-content">Connect</h3>
+          <div className="flex gap-4 text-sm text-base-content/60">
+            <a href="#" className="hover:text-base-content transition-colors">Facebook</a>
+            <a href="#" className="hover:text-base-content transition-colors">Twitter</a>
+            <a href="#" className="hover:text-base-content transition-colors">LinkedIn</a>
           </div>
-
-          <p className="mt-4 text-sm">support@videoConferncing.com</p>
+          <p className="mt-4 text-sm text-base-content/60">support@talentiq.com</p>
         </div>
 
       </div>
 
       {/* Bottom */}
-      <div className="text-center text-sm mt-10 border-t border-gray-700 pt-5">
-        © {new Date().getFullYear()} VideoConferncing. All rights reserved.
+      <div className="text-center text-sm mt-10 border-t border-base-300 pt-5 text-base-content/50">
+        © {new Date().getFullYear()} Talent IQ. All rights reserved.
       </div>
     </footer>
   );

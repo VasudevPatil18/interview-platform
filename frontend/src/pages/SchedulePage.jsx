@@ -16,12 +16,11 @@ function SchedulePage() {
   const [upcomingInterviews, setUpcomingInterviews] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedRole, setSelectedRole] = useState("all"); // all, interviewer, candidate
-  const [selectedMonth, setSelectedMonth] = useState(new Date());
 
   useEffect(() => {
     fetchInterviews();
     fetchUpcoming();
-  }, [selectedRole]);
+  }, [selectedRole]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchInterviews = async () => {
     try {
@@ -80,7 +79,7 @@ function SchedulePage() {
     return "unknown";
   };
 
-  const getDifficultyColor = (difficulty) => {
+  const getDifficultyColor = (difficulty) => { // eslint-disable-line no-unused-vars
     switch (difficulty?.toLowerCase()) {
       case "easy": return "badge-success";
       case "medium": return "badge-warning";
@@ -267,12 +266,6 @@ function SchedulePage() {
             ) : (
               <div className="space-y-4">
                 {interviews.map((interview) => {
-                  const role = getInterviewRole(interview);
-                  const otherPerson =
-                    role === "interviewer"
-                      ? interview.candidate
-                      : interview.interviewer;
-
                   return (
                     <div
                       key={interview._id}

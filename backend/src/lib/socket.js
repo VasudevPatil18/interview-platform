@@ -84,6 +84,36 @@ export const initializeSocket = (server) => {
       });
     });
 
+    // E2E key exchange for code editor encryption
+    socket.on("e2e-public-key", ({ roomId, publicKey }) => {
+      // Relay public key to the other peer in the room
+      socket.to(roomId).emit("e2e-public-key", {
+        publicKey,
+        fromSocketId: socket.id,
+        userName: socket.userName,
+      });
+    });
+
+    // Encrypted code editor sync
+    socket.on("code-change", ({ roomId, encryptedCode, language }) => {
+      socket.to(roomId).emit("code-change", {
+        encryptedCode,
+        language,
+        userName: socket.userName,
+        userId: socket.userId,
+      });
+    });
+
+    // Cursor position sync (not encrypted — just line/column numbers)
+    socket.on("code-cursor", ({ roomId, line, column }) => {
+      socket.to(roomId).emit("code-cursor", {
+        line,
+        column,
+        userName: socket.userName,
+        userId: socket.userId,
+      });
+    });
+
     // Media controls
     socket.on("toggle-audio", ({ roomId, enabled }) => {
       socket.to(roomId).emit("user-audio-toggle", {

@@ -21,7 +21,7 @@ function MeetingCodeDisplay({ meetingCode, sessionId }) {
         toast.success("Meeting link copied!");
         setTimeout(() => setCopiedLink(false), 2000);
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to copy");
     }
   };

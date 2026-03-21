@@ -15,7 +15,7 @@ function AdminSessionsPage() {
 
   useEffect(() => {
     fetchSessions();
-  }, [page, statusFilter]);
+  }, [page, statusFilter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchSessions = async () => {
     try {
@@ -23,7 +23,7 @@ function AdminSessionsPage() {
       const data = await adminApi.getSessions({ page, limit: 10, status: statusFilter });
       setSessions(data.sessions);
       setTotalPages(data.totalPages);
-    } catch (error) {
+    } catch {
       toast.error("Failed to load sessions");
     } finally {
       setLoading(false);
@@ -37,8 +37,8 @@ function AdminSessionsPage() {
       await adminApi.forceEndSession(sessionId);
       toast.success("Session ended successfully");
       fetchSessions();
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to end session");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to end session");
     }
   };
 

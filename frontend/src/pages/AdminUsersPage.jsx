@@ -15,7 +15,7 @@ function AdminUsersPage() {
 
   useEffect(() => {
     fetchUsers();
-  }, [page, search, roleFilter]);
+  }, [page, search, roleFilter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchUsers = async () => {
     try {
@@ -23,7 +23,7 @@ function AdminUsersPage() {
       const data = await adminApi.getUsers({ page, limit: 10, search, role: roleFilter });
       setUsers(data.users);
       setTotalPages(data.totalPages);
-    } catch (error) {
+    } catch {
       toast.error("Failed to load users");
     } finally {
       setLoading(false);
@@ -36,8 +36,8 @@ function AdminUsersPage() {
       toast.success("User updated successfully");
       fetchUsers();
       setEditingUser(null);
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to update user");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to update user");
     }
   };
 
@@ -48,8 +48,8 @@ function AdminUsersPage() {
       await adminApi.deleteUser(userId);
       toast.success("User deleted successfully");
       fetchUsers();
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to delete user");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to delete user");
     }
   };
 

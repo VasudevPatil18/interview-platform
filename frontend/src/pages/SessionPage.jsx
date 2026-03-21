@@ -1,6 +1,6 @@
 import WebRTCVideoCall from "../components/WebRTCVideoCall";
 import { useAuth } from "../context/AuthContext";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useEndSession, useJoinSession, useSessionById } from "../hooks/useSessions";
 import { PROBLEMS } from "../data/problems";
@@ -13,6 +13,8 @@ import CodeEditorPanel from "../components/CodeEditorPanel";
 import OutputPanel from "../components/OutputPanel";
 import MeetingCodeDisplay from "../components/MeetingCodeDisplay";
 import { useIsMobile } from "../hooks/useIsMobile";
+import { useWebRTC } from "../hooks/useWebRTC";
+import FeedbackModal from "../components/FeedbackModal";
 
 function SessionPage() {
   const navigate = useNavigate();
@@ -24,10 +26,7 @@ function SessionPage() {
   const [activeTab, setActiveTab] = useState("problem");
   const isMobile = useIsMobile();
 
-  // ✅ FEEDBACK STATES
   const [showFeedback, setShowFeedback] = useState(false);
-  const [rating, setRating] = useState("");
-  const [review, setReview] = useState("");
 
   const { data: sessionData, isLoading: loadingSession, refetch } =
     useSessionById(id);
@@ -46,24 +45,37 @@ function SessionPage() {
   const [selectedLanguage, setSelectedLanguage] = useState("javascript");
   const [code, setCode] = useState("");
 
+  // WebRTC + E2E encryption (shared between editor and video call)
+  const webrtc = useWebRTC(session, user, isHost, isParticipant);
+  const { sendCodeChange, sendCursorPosition, remoteCode, remoteCursor, isEncryptionReady } = webrtc;
+
+  // Debounce ref to avoid flooding socket on every keystroke
+  const codeChangeTimer = useRef(null);
+
+  // Apply incoming remote code changes to local editor
+  useEffect(() => {
+    if (!remoteCode) return;
+    // Only apply if language matches or update language too
+    if (remoteCode.language !== selectedLanguage) {
+      setSelectedLanguage(remoteCode.language);
+    }
+    setCode(remoteCode.code);
+  }, [remoteCode]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     if (!session || !user || loadingSession) return;
     if (isHost || isParticipant) return;
     joinSessionMutation.mutate(id, { onSuccess: refetch });
-  }, [session, user, loadingSession, isHost, isParticipant, id]);
+  }, [session, user, loadingSession, isHost, isParticipant, id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ✅ HANDLE SESSION COMPLETE
+  // Show feedback modal for both host and participant when session ends
   useEffect(() => {
     if (!session || loadingSession) return;
 
-    if (session.status === "completed") {
-      if (!isHost) {
-        setShowFeedback(true);
-      } else {
-        navigate("/dashboard");
-      }
+    if (session.status === "completed" && (isHost || isParticipant)) {
+      setShowFeedback(true);
     }
-  }, [session, loadingSession, navigate, isHost]);
+  }, [session, loadingSession, isHost, isParticipant]);
 
   useEffect(() => {
     if (problemData?.starterCode?.[selectedLanguage]) {
@@ -74,9 +86,21 @@ function SessionPage() {
   const handleLanguageChange = (e) => {
     const newLang = e.target.value;
     setSelectedLanguage(newLang);
-    setCode(problemData?.starterCode?.[newLang] || "");
+    const newCode = problemData?.starterCode?.[newLang] || "";
+    setCode(newCode);
     setOutput(null);
+    // Broadcast language + starter code change
+    sendCodeChange(newCode, newLang);
   };
+
+  const handleCodeChange = useCallback((value) => {
+    setCode(value);
+    // Debounce: send encrypted update 300ms after user stops typing
+    if (codeChangeTimer.current) clearTimeout(codeChangeTimer.current);
+    codeChangeTimer.current = setTimeout(() => {
+      sendCodeChange(value ?? "", selectedLanguage);
+    }, 300);
+  }, [selectedLanguage, sendCodeChange]);
 
   const handleRunCode = async () => {
     setIsRunning(true);
@@ -87,32 +111,9 @@ function SessionPage() {
   };
 
   const handleEndSession = () => {
-    if (
-      confirm(
-        "Are you sure you want to end this session? All participants will be notified."
-      )
-    ) {
-      endSessionMutation.mutate(id, {
-        onSuccess: () => navigate("/dashboard"),
-      });
-    }
-  };
-
-  // ✅ FEEDBACK SUBMIT
-  const handleSubmitFeedback = async () => {
-    if (!rating) return alert("Please provide rating");
-
-    try {
-      await fetch(`/api/feedback/${session._id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rating, review }),
-      });
-
-      setShowFeedback(false);
-      navigate("/dashboard");
-    } catch (err) {
-      alert("Failed to submit feedback");
+    if (confirm("Are you sure you want to end this session? All participants will be notified.")) {
+      // Don't navigate immediately — the session-complete useEffect will show the feedback modal
+      endSessionMutation.mutate(id);
     }
   };
 
@@ -128,8 +129,11 @@ function SessionPage() {
               code={code}
               isRunning={isRunning}
               onLanguageChange={handleLanguageChange}
-              onCodeChange={(value) => setCode(value)}
+              onCodeChange={handleCodeChange}
               onRunCode={handleRunCode}
+              remoteCursor={remoteCursor}
+              isEncryptionReady={isEncryptionReady}
+              onCursorChange={sendCursorPosition}
             />
             <OutputPanel output={output} />
           </div>
@@ -137,10 +141,10 @@ function SessionPage() {
       case "video":
         return (
           <WebRTCVideoCall
-            session={session}
             user={user}
-            isHost={isHost}
-            isParticipant={isParticipant}
+            webrtc={webrtc}
+            currentCode={code}
+            currentLanguage={selectedLanguage}
           />
         );
       default:
@@ -216,8 +220,9 @@ function SessionPage() {
                               session?.difficulty
                             )}`}
                           >
-                            {session?.difficulty.slice(0, 1).toUpperCase() +
-                              session?.difficulty.slice(1) || "Easy"}
+                            {session?.difficulty
+                              ? session.difficulty.slice(0, 1).toUpperCase() + session.difficulty.slice(1)
+                              : "Easy"}
                           </span>
                           {isHost && session?.status === "active" && (
                             <button
@@ -332,8 +337,11 @@ function SessionPage() {
                         code={code}
                         isRunning={isRunning}
                         onLanguageChange={handleLanguageChange}
-                        onCodeChange={(value) => setCode(value)}
+                        onCodeChange={handleCodeChange}
                         onRunCode={handleRunCode}
+                        remoteCursor={remoteCursor}
+                        isEncryptionReady={isEncryptionReady}
+                        onCursorChange={sendCursorPosition}
                       />
                     </Panel>
 
@@ -353,71 +361,28 @@ function SessionPage() {
             <Panel defaultSize={50} minSize={30}>
               <div className="h-full bg-base-200">
                 <WebRTCVideoCall 
-                  session={session}
                   user={user}
-                  isHost={isHost}
-                  isParticipant={isParticipant}
+                  webrtc={webrtc}
+                  currentCode={code}
+                  currentLanguage={selectedLanguage}
                 />
               </div>
             </Panel>
           </PanelGroup>
         </div>
       )}
-      {/* ✅ FEEDBACK MODAL */}
-{showFeedback && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
-    <div className="bg-base-100 p-6 rounded-xl w-[90%] max-w-md shadow-2xl border border-base-300">
-      <h2 className="text-xl font-bold mb-4 text-center">
-        How was your session?
-      </h2>
-
-      <div className="space-y-5">
-        
-        {/* ⭐ STAR RATING */}
-        <div className="flex flex-col items-center gap-2">
-          <div className="flex gap-2 text-4xl">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <button
-                key={star}
-                type="button"
-                onClick={() => setRating(star)}
-                className={`transition-all duration-200 ${
-                  star <= rating
-                    ? "text-yellow-400 scale-110"
-                    : "text-gray-400"
-                } hover:scale-125`}
-              >
-                ★
-              </button>
-            ))}
-          </div>
-
-          <p className="text-sm text-base-content/60">
-            {rating > 0
-              ? `You rated ${rating} out of 5`
-              : "Select your rating"}
-          </p>
-        </div>
-
-        {/* 📝 REVIEW TEXTAREA */}
-        <textarea
-          value={review}
-          onChange={(e) => setReview(e.target.value)}
-          className="textarea textarea-bordered w-full"
-          placeholder="Write your feedback..."
+      {/* FEEDBACK MODAL — shown to both host and participant on session end */}
+      {showFeedback && session && (
+        <FeedbackModal
+          session={session}
+          user={user}
+          isHost={isHost}
+          onDone={() => {
+            setShowFeedback(false);
+            navigate("/dashboard");
+          }}
         />
-
-        {/* 🚀 SUBMIT BUTTON */}
-        <button
-          onClick={handleSubmitFeedback}
-          className="btn btn-primary w-full"
-        >
-          Submit Feedback
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+      )}
     </div>
   );
 }

@@ -60,7 +60,7 @@ export function useSessionRecording() {
       toast.error('Failed to start recording');
       return false;
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Stop recording
   const stopRecording = useCallback(() => {

@@ -3,27 +3,25 @@ import Session from "../models/Session.js";
 
 export async function submitFeedback(req, res) {
   try {
-    const { sessionid, rating, review } = req.body;
+    const { sessionId, rating, review } = req.body;
     const userId = req.user._id;
 
     if (!rating) {
       return res.status(400).json({ message: "Rating is required" });
     }
 
-    const session = await Session.findById(sessionid);
+    const session = await Session.findById(sessionId);
 
     if (!session) {
       return res.status(404).json({ message: "Session not found" });
     }
 
-    // ✅ Ensure session completed
+    // Ensure session completed
     if (session.status !== "completed") {
-      return res
-        .status(400)
-        .json({ message: "Session not completed yet" });
+      return res.status(400).json({ message: "Session not completed yet" });
     }
 
-    // ✅ Ensure user is part of session
+    // Ensure user is part of session
     const isHost = session.host.toString() === userId.toString();
     const isParticipant =
       session.participant &&
@@ -33,35 +31,21 @@ export async function submitFeedback(req, res) {
       return res.status(403).json({ message: "Not allowed" });
     }
 
-    // ✅ Prevent duplicate feedback
-    const existing = await Feedback.findOne({
-      session: sessionid,
-      givenBy: userId,
-    });
-
+    // Prevent duplicate feedback
+    const existing = await Feedback.findOne({ session: sessionId, givenBy: userId });
     if (existing) {
-      return res
-        .status(400)
-        .json({ message: "Feedback already submitted" });
+      return res.status(400).json({ message: "Feedback already submitted" });
     }
 
-    // ✅ Decide who receives feedback
-    let givenTo = null;
-
-    if (isHost && session.participant) {
-      givenTo = session.participant;
-    } else if (isParticipant) {
-      givenTo = session.host;
-    }
+    // Decide who receives feedback
+    const givenTo = isHost ? session.participant : session.host;
 
     if (!givenTo) {
-      return res
-        .status(400)
-        .json({ message: "No user to give feedback to" });
+      return res.status(400).json({ message: "No user to give feedback to" });
     }
 
     const feedback = await Feedback.create({
-      session: sessionid,
+      session: sessionId,
       givenBy: userId,
       givenTo,
       rating,
@@ -76,13 +60,31 @@ export async function submitFeedback(req, res) {
 }
 
 export async function checkFeedback(req, res) {
-  const { sessionid } = req.params;
+  const { sessionId } = req.params;
   const userId = req.user._id;
 
   const existing = await Feedback.findOne({
-    session: sessionid,
+    session: sessionId,
     givenBy: userId,
   });
 
   res.json({ alreadyGiven: !!existing });
+}
+
+export async function getSessionFeedback(req, res) {
+  try {
+    const { sessionId } = req.params;
+    const userId = req.user._id;
+
+    // Return feedback received by this user for this session
+    const feedback = await Feedback.findOne({
+      session: sessionId,
+      givenTo: userId,
+    }).populate("givenBy", "name");
+
+    res.json({ feedback: feedback || null });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
 }

@@ -1,22 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { io } from 'socket.io-client';
 import toast from 'react-hot-toast';
+import { useE2EEncryption } from './useE2EEncryption';
 
 const ICE_SERVERS = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
-    // Add TURN servers for production
-    // {
-    //   urls: 'turn:your-turn-server.com:3478',
-    //   username: 'username',
-    //   credential: 'password'
-    // }
   ],
 };
 
 export function useWebRTC(session, user, isHost, isParticipant) {
-  const [socket, setSocket] = useState(null);
+  const [socket, setSocket] = useState(null); // eslint-disable-line no-unused-vars
   const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
@@ -25,18 +20,30 @@ export function useWebRTC(session, user, isHost, isParticipant) {
   const [chatMessages, setChatMessages] = useState([]);
   const [isConnecting, setIsConnecting] = useState(true);
   const [remoteUser, setRemoteUser] = useState(null);
+  const [remoteCursor, setRemoteCursor] = useState(null);
+  const [remoteCode, setRemoteCode] = useState(null);
+
+  const { init: initEncryption, completeKeyExchange, encrypt, decrypt, getPublicKeyB64, isReady: isEncryptionReady } = useE2EEncryption();
 
   const peerConnection = useRef(null);
   const screenStream = useRef(null);
   const connectionTimeoutRef = useRef(null);
+  const socketRef = useRef(null);
+  const localStreamRef = useRef(null);       // always-current ref to avoid stale closures
+  const keyExchangeDoneRef = useRef(false);  // BUG FIX #1: prevent infinite key exchange loop
+  const stopScreenShareRef = useRef(null);   // BUG FIX #9: forward-ref for stopScreenShare
+
+  // Keep localStreamRef in sync with state
+  useEffect(() => {
+    localStreamRef.current = localStream;
+  }, [localStream]);
 
   // Initialize socket connection
   useEffect(() => {
     if (!session || !user || (!isHost && !isParticipant)) return;
 
     const API_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
-    console.log('Connecting to socket at:', API_URL);
-    
+
     const socketInstance = io(API_URL, {
       transports: ['websocket', 'polling'],
       reconnection: true,
@@ -45,24 +52,16 @@ export function useWebRTC(session, user, isHost, isParticipant) {
       timeout: 10000,
     });
 
-    // Set connection timeout
     connectionTimeoutRef.current = setTimeout(() => {
-      if (isConnecting) {
-        console.error('Connection timeout');
-        toast.error('Connection timeout. Please check your network and refresh.');
-        setIsConnecting(false);
-      }
+      setIsConnecting(false);
+      toast.error('Connection timeout. Please check your network and refresh.');
     }, 15000);
 
-    socketInstance.on('connect', () => {
+    socketInstance.on('connect', async () => {
       console.log('Socket connected:', socketInstance.id);
-      
-      // Join room
-      socketInstance.emit('join-room', {
-        roomId: session._id,
-        userId: user._id,
-        userName: user.name,
-      });
+      const pubKeyB64 = await initEncryption();
+      socketInstance.emit('e2e-public-key', { roomId: session._id, publicKey: pubKeyB64 });
+      socketInstance.emit('join-room', { roomId: session._id, userId: user._id, userName: user.name });
     });
 
     socketInstance.on('connect_error', (error) => {
@@ -72,26 +71,26 @@ export function useWebRTC(session, user, isHost, isParticipant) {
     });
 
     socketInstance.on('existing-users', (users) => {
-      console.log('Existing users:', users);
-      if (connectionTimeoutRef.current) {
-        clearTimeout(connectionTimeoutRef.current);
-      }
+      if (connectionTimeoutRef.current) clearTimeout(connectionTimeoutRef.current);
       if (users.length > 0) {
         setRemoteUser(users[0]);
-        // Create offer to existing user
-        createOffer(users[0].socketId);
+        // BUG FIX #2: use ref-based createOffer so it always has current socket/stream
+        createOfferRef.current(users[0].socketId);
       }
       setIsConnecting(false);
     });
 
     socketInstance.on('user-joined', (userData) => {
-      console.log('User joined:', userData);
       setRemoteUser(userData);
       toast.success(`${userData.userName} joined the call`);
+      // Re-send our public key to the new peer
+      const pubKeyB64 = getPublicKeyB64();
+      if (pubKeyB64) {
+        socketInstance.emit('e2e-public-key', { roomId: session._id, publicKey: pubKeyB64 });
+      }
     });
 
     socketInstance.on('user-left', (userData) => {
-      console.log('User left:', userData);
       setRemoteUser(null);
       setRemoteStream(null);
       if (peerConnection.current) {
@@ -101,19 +100,48 @@ export function useWebRTC(session, user, isHost, isParticipant) {
       toast.info(`${userData.userName} left the call`);
     });
 
+    // BUG FIX #1: guard against infinite key exchange loop
+    socketInstance.on('e2e-public-key', async ({ publicKey }) => {
+      if (keyExchangeDoneRef.current) return; // already have a shared key, ignore
+      await completeKeyExchange(publicKey);
+      keyExchangeDoneRef.current = true;
+      // Send our key back only once so the other side can also derive
+      const myPubKey = getPublicKeyB64();
+      if (myPubKey) {
+        socketInstance.emit('e2e-public-key', { roomId: session._id, publicKey: myPubKey });
+      }
+    });
+
+    socketInstance.on('code-change', async ({ encryptedCode, language, userName }) => {
+      const decryptedCode = await decrypt(encryptedCode);
+      setRemoteCode({ code: decryptedCode, language, userName });
+    });
+
+    socketInstance.on('code-cursor', ({ line, column, userName }) => {
+      setRemoteCursor({ line, column, userName });
+    });
+
     socketInstance.on('offer', async ({ offer, from, userName }) => {
       console.log('Received offer from:', userName);
-      await handleOffer(offer, from);
+      await handleOfferRef.current(offer, from);
     });
 
-    socketInstance.on('answer', async ({ answer, from }) => {
-      console.log('Received answer from:', from);
-      await handleAnswer(answer);
+    socketInstance.on('answer', async ({ answer }) => {
+      if (!peerConnection.current) return;
+      try {
+        await peerConnection.current.setRemoteDescription(new RTCSessionDescription(answer));
+      } catch (e) {
+        console.error('Error handling answer:', e);
+      }
     });
 
-    socketInstance.on('ice-candidate', async ({ candidate, from }) => {
-      console.log('Received ICE candidate from:', from);
-      await handleIceCandidate(candidate);
+    socketInstance.on('ice-candidate', async ({ candidate }) => {
+      if (!peerConnection.current) return;
+      try {
+        await peerConnection.current.addIceCandidate(new RTCIceCandidate(candidate));
+      } catch (e) {
+        console.error('Error handling ICE candidate:', e);
+      }
     });
 
     socketInstance.on('chat-message', (data) => {
@@ -128,26 +156,24 @@ export function useWebRTC(session, user, isHost, isParticipant) {
       console.log(`User ${userId} ${enabled ? 'enabled' : 'disabled'} video`);
     });
 
+    socketRef.current = socketInstance;
     setSocket(socketInstance);
 
     return () => {
-      if (connectionTimeoutRef.current) {
-        clearTimeout(connectionTimeoutRef.current);
-      }
+      if (connectionTimeoutRef.current) clearTimeout(connectionTimeoutRef.current);
       socketInstance.disconnect();
     };
-  }, [session, user, isHost, isParticipant]);
-
-  // Get local media stream
+  }, [session, user, isHost, isParticipant]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
+    if (!session || !user || (!isHost && !isParticipant)) return;
+
+    let acquired = null;
+
     const getLocalStream = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: true,
-        });
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        acquired = stream;
         setLocalStream(stream);
-        console.log('Local media stream acquired');
       } catch (error) {
         console.error('Error accessing media devices:', error);
         if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
@@ -161,254 +187,187 @@ export function useWebRTC(session, user, isHost, isParticipant) {
       }
     };
 
-    if (session && user && (isHost || isParticipant)) {
-      getLocalStream();
-    }
+    getLocalStream();
 
+    // BUG FIX #3: capture the stream in closure so cleanup always has the right reference
     return () => {
-      if (localStream) {
-        localStream.getTracks().forEach((track) => track.stop());
+      if (acquired) {
+        acquired.getTracks().forEach((track) => track.stop());
       }
     };
   }, [session, user, isHost, isParticipant]);
 
-  // Create peer connection
-  const createPeerConnection = useCallback((remoteSocketId) => {
-    const pc = new RTCPeerConnection(ICE_SERVERS);
+  // BUG FIX #2 & #4: use refs for createPeerConnection/createOffer/handleOffer
+  // so socket listeners registered at mount always call the latest version
+  const createPeerConnectionRef = useRef(null);
+  const createOfferRef = useRef(null);
+  const handleOfferRef = useRef(null);
 
-    // Add local stream tracks
-    if (localStream) {
-      localStream.getTracks().forEach((track) => {
-        pc.addTrack(track, localStream);
-      });
+  // Keep these refs updated on every render
+  createPeerConnectionRef.current = (remoteSocketId) => {
+    const pc = new RTCPeerConnection(ICE_SERVERS);
+    const stream = localStreamRef.current;
+
+    if (stream) {
+      stream.getTracks().forEach((track) => pc.addTrack(track, stream));
     }
 
-    // Handle remote stream
     pc.ontrack = (event) => {
-      console.log('Received remote track');
       setRemoteStream(event.streams[0]);
     };
 
-    // Handle ICE candidates
+    // BUG FIX #4: use socketRef.current instead of stale socket state
     pc.onicecandidate = (event) => {
-      if (event.candidate && socket) {
-        socket.emit('ice-candidate', {
-          candidate: event.candidate,
-          to: remoteSocketId,
-        });
+      if (event.candidate && socketRef.current) {
+        socketRef.current.emit('ice-candidate', { candidate: event.candidate, to: remoteSocketId });
       }
     };
 
     pc.onconnectionstatechange = () => {
-      console.log('Connection state:', pc.connectionState);
-      if (pc.connectionState === 'connected') {
-        toast.success('Connected to peer');
-      } else if (pc.connectionState === 'failed') {
-        toast.error('Connection failed. Please refresh and try again.');
-      } else if (pc.connectionState === 'disconnected') {
-        toast.info('Connection lost. Attempting to reconnect...');
-      }
+      if (pc.connectionState === 'connected') toast.success('Connected to peer');
+      else if (pc.connectionState === 'failed') toast.error('Connection failed. Please refresh and try again.');
+      else if (pc.connectionState === 'disconnected') toast.info('Connection lost. Attempting to reconnect...');
     };
 
     pc.oniceconnectionstatechange = () => {
-      console.log('ICE connection state:', pc.iceConnectionState);
-      if (pc.iceConnectionState === 'failed') {
-        toast.error('Network connection failed. Check your firewall settings.');
-      }
+      if (pc.iceConnectionState === 'failed') toast.error('Network connection failed. Check your firewall settings.');
     };
 
     peerConnection.current = pc;
     return pc;
-  }, [localStream, socket]);
+  };
 
-  // Create offer
-  const createOffer = useCallback(async (remoteSocketId) => {
-    if (!socket || !localStream) return;
+  createOfferRef.current = async (remoteSocketId) => {
+    const sock = socketRef.current;
+    const stream = localStreamRef.current;
+    if (!sock || !stream) return;
 
-    const pc = createPeerConnection(remoteSocketId);
-    
+    const pc = createPeerConnectionRef.current(remoteSocketId);
     try {
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
-      
-      socket.emit('offer', {
-        offer,
-        to: remoteSocketId,
-      });
+      sock.emit('offer', { offer, to: remoteSocketId });
     } catch (error) {
       console.error('Error creating offer:', error);
     }
-  }, [socket, localStream, createPeerConnection]);
+  };
 
-  // Handle offer
-  const handleOffer = useCallback(async (offer, remoteSocketId) => {
-    if (!socket || !localStream) return;
+  handleOfferRef.current = async (offer, remoteSocketId) => {
+    const sock = socketRef.current;
+    const stream = localStreamRef.current;
+    if (!sock || !stream) return;
 
-    const pc = createPeerConnection(remoteSocketId);
-    
+    const pc = createPeerConnectionRef.current(remoteSocketId);
     try {
       await pc.setRemoteDescription(new RTCSessionDescription(offer));
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
-      
-      socket.emit('answer', {
-        answer,
-        to: remoteSocketId,
-      });
+      sock.emit('answer', { answer, to: remoteSocketId });
     } catch (error) {
       console.error('Error handling offer:', error);
     }
-  }, [socket, localStream, createPeerConnection]);
+  };
 
-  // Handle answer
-  const handleAnswer = useCallback(async (answer) => {
-    if (!peerConnection.current) return;
-    
-    try {
-      await peerConnection.current.setRemoteDescription(new RTCSessionDescription(answer));
-    } catch (error) {
-      console.error('Error handling answer:', error);
-    }
-  }, []);
-
-  // Handle ICE candidate
-  const handleIceCandidate = useCallback(async (candidate) => {
-    if (!peerConnection.current) return;
-    
-    try {
-      await peerConnection.current.addIceCandidate(new RTCIceCandidate(candidate));
-    } catch (error) {
-      console.error('Error handling ICE candidate:', error);
-    }
-  }, []);
-
-  // Toggle audio
   const toggleAudio = useCallback(() => {
-    if (localStream) {
-      const audioTrack = localStream.getAudioTracks()[0];
-      if (audioTrack) {
-        audioTrack.enabled = !audioTrack.enabled;
-        setIsAudioEnabled(audioTrack.enabled);
-        
-        if (socket && session) {
-          socket.emit('toggle-audio', {
-            roomId: session._id,
-            enabled: audioTrack.enabled,
-          });
-        }
+    const stream = localStreamRef.current;
+    if (!stream) return;
+    const audioTrack = stream.getAudioTracks()[0];
+    if (audioTrack) {
+      audioTrack.enabled = !audioTrack.enabled;
+      setIsAudioEnabled(audioTrack.enabled);
+      if (socketRef.current && session) {
+        socketRef.current.emit('toggle-audio', { roomId: session._id, enabled: audioTrack.enabled });
       }
     }
-  }, [localStream, socket, session]);
+  }, [session]);
 
-  // Toggle video
   const toggleVideo = useCallback(() => {
-    if (localStream) {
-      const videoTrack = localStream.getVideoTracks()[0];
-      if (videoTrack) {
-        videoTrack.enabled = !videoTrack.enabled;
-        setIsVideoEnabled(videoTrack.enabled);
-        
-        if (socket && session) {
-          socket.emit('toggle-video', {
-            roomId: session._id,
-            enabled: videoTrack.enabled,
-          });
-        }
+    const stream = localStreamRef.current;
+    if (!stream) return;
+    const videoTrack = stream.getVideoTracks()[0];
+    if (videoTrack) {
+      videoTrack.enabled = !videoTrack.enabled;
+      setIsVideoEnabled(videoTrack.enabled);
+      if (socketRef.current && session) {
+        socketRef.current.emit('toggle-video', { roomId: session._id, enabled: videoTrack.enabled });
       }
     }
-  }, [localStream, socket, session]);
+  }, [session]);
 
-  // Start screen sharing
+  // BUG FIX #9: define stopScreenShare before startScreenShare and use a ref
+  const stopScreenShare = useCallback(() => {
+    if (!screenStream.current) return;
+    screenStream.current.getTracks().forEach((track) => track.stop());
+
+    const stream = localStreamRef.current;
+    if (peerConnection.current && stream) {
+      const videoTrack = stream.getVideoTracks()[0];
+      const sender = peerConnection.current.getSenders().find((s) => s.track?.kind === 'video');
+      if (sender && videoTrack) sender.replaceTrack(videoTrack);
+    }
+
+    screenStream.current = null;
+    setIsScreenSharing(false);
+
+    if (socketRef.current && session) {
+      socketRef.current.emit('stop-screen-share', { roomId: session._id });
+    }
+  }, [session]);
+
+  // Keep stopScreenShareRef current so startScreenShare's onended always calls latest version
+  stopScreenShareRef.current = stopScreenShare;
+
   const startScreenShare = useCallback(async () => {
     try {
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
-      });
-      
+      const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
       screenStream.current = stream;
-      
-      // Replace video track
-      if (peerConnection.current && localStream) {
+
+      if (peerConnection.current && localStreamRef.current) {
         const videoTrack = stream.getVideoTracks()[0];
-        const sender = peerConnection.current
-          .getSenders()
-          .find((s) => s.track?.kind === 'video');
-        
-        if (sender) {
-          sender.replaceTrack(videoTrack);
-        }
+        const sender = peerConnection.current.getSenders().find((s) => s.track?.kind === 'video');
+        if (sender) sender.replaceTrack(videoTrack);
       }
-      
+
       setIsScreenSharing(true);
-      
-      if (socket && session) {
-        socket.emit('start-screen-share', { roomId: session._id });
+
+      if (socketRef.current && session) {
+        socketRef.current.emit('start-screen-share', { roomId: session._id });
       }
-      
-      // Handle screen share stop
-      stream.getVideoTracks()[0].onended = () => {
-        stopScreenShare();
-      };
+
+      // BUG FIX #9: use ref so this always calls the current stopScreenShare
+      stream.getVideoTracks()[0].onended = () => stopScreenShareRef.current();
     } catch (error) {
       console.error('Error starting screen share:', error);
       toast.error('Failed to start screen sharing');
     }
-  }, [socket, session, localStream]);
+  }, [session]);
 
-  // Stop screen sharing
-  const stopScreenShare = useCallback(() => {
-    if (screenStream.current) {
-      screenStream.current.getTracks().forEach((track) => track.stop());
-      
-      // Restore camera video
-      if (peerConnection.current && localStream) {
-        const videoTrack = localStream.getVideoTracks()[0];
-        const sender = peerConnection.current
-          .getSenders()
-          .find((s) => s.track?.kind === 'video');
-        
-        if (sender) {
-          sender.replaceTrack(videoTrack);
-        }
-      }
-      
-      setIsScreenSharing(false);
-      
-      if (socket && session) {
-        socket.emit('stop-screen-share', { roomId: session._id });
-      }
-    }
-  }, [socket, session, localStream]);
-
-  // Send chat message
   const sendMessage = useCallback((message) => {
-    if (socket && session && user) {
-      socket.emit('chat-message', {
-        roomId: session._id,
-        message,
-        userName: user.name,
-      });
+    if (socketRef.current && session && user) {
+      socketRef.current.emit('chat-message', { roomId: session._id, message, userName: user.name });
     }
-  }, [socket, session, user]);
+  }, [session, user]);
 
-  // Leave call
+  const sendCodeChange = useCallback(async (code, language) => {
+    if (!socketRef.current || !session) return;
+    const encryptedCode = await encrypt(code);
+    socketRef.current.emit('code-change', { roomId: session._id, encryptedCode, language });
+  }, [session, encrypt]);
+
+  const sendCursorPosition = useCallback((line, column) => {
+    if (!socketRef.current || !session) return;
+    socketRef.current.emit('code-cursor', { roomId: session._id, line, column });
+  }, [session]);
+
   const leaveCall = useCallback(() => {
-    if (socket && session) {
-      socket.emit('leave-room', { roomId: session._id });
+    if (socketRef.current && session) {
+      socketRef.current.emit('leave-room', { roomId: session._id });
     }
-    
-    if (localStream) {
-      localStream.getTracks().forEach((track) => track.stop());
-    }
-    
-    if (screenStream.current) {
-      screenStream.current.getTracks().forEach((track) => track.stop());
-    }
-    
-    if (peerConnection.current) {
-      peerConnection.current.close();
-    }
-  }, [socket, session, localStream]);
+    const stream = localStreamRef.current;
+    if (stream) stream.getTracks().forEach((track) => track.stop());
+    if (screenStream.current) screenStream.current.getTracks().forEach((track) => track.stop());
+    if (peerConnection.current) peerConnection.current.close();
+  }, [session]);
 
   return {
     localStream,
@@ -419,11 +378,16 @@ export function useWebRTC(session, user, isHost, isParticipant) {
     chatMessages,
     isConnecting,
     remoteUser,
+    remoteCursor,
+    remoteCode,
+    isEncryptionReady,
     toggleAudio,
     toggleVideo,
     startScreenShare,
     stopScreenShare,
     sendMessage,
+    sendCodeChange,
+    sendCursorPosition,
     leaveCall,
   };
 }
