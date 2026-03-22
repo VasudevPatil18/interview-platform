@@ -60,15 +60,20 @@ export async function submitFeedback(req, res) {
 }
 
 export async function checkFeedback(req, res) {
-  const { sessionId } = req.params;
-  const userId = req.user._id;
+  try {
+    const { sessionId } = req.params;
+    const userId = req.user._id;
 
-  const existing = await Feedback.findOne({
-    session: sessionId,
-    givenBy: userId,
-  });
+    const existing = await Feedback.findOne({
+      session: sessionId,
+      givenBy: userId,
+    });
 
-  res.json({ alreadyGiven: !!existing });
+    res.json({ alreadyGiven: !!existing });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
 }
 
 export async function getSessionFeedback(req, res) {

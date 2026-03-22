@@ -2,7 +2,7 @@ import { Link } from "react-router";
 import Navbar from "../components/Navbar";
 
 import { PROBLEMS } from "../data/problems";
-import { ChevronRightIcon, Code2Icon } from "lucide-react";
+import { ChevronRightIcon, Code2Icon, PencilIcon } from "lucide-react";
 import { getDifficultyBadgeClass } from "../lib/utils";
 import Footer from "../components/Footer";
 
@@ -17,7 +17,6 @@ function ProblemsPage() {
   <div className="min-h-screen flex flex-col bg-base-200">
     <Navbar />
 
-    {/* Main Content */}
     <div className="flex-1">
       <div className="max-w-6xl mx-auto px-4 py-8 md:py-12">
         
@@ -31,6 +30,39 @@ function ProblemsPage() {
 
         {/* PROBLEMS LIST */}
         <div className="space-y-3 md:space-y-4">
+
+          {/* CUSTOM / BLANK EDITOR CARD */}
+          <Link
+            to="/problem/custom"
+            className="card bg-base-100 hover:scale-[1.01] transition-transform border-2 border-dashed border-primary/30 hover:border-primary/60"
+          >
+            <div className="card-body p-4 md:p-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 md:gap-4">
+                <div className="flex-1 w-full">
+                  <div className="flex items-start gap-3 mb-2">
+                    <div className="size-10 md:size-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <PencilIcon className="size-5 md:size-6 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
+                        <h2 className="text-lg md:text-xl font-bold">Custom Problem</h2>
+                        <span className="badge badge-sm md:badge-md badge-ghost">Free Form</span>
+                      </div>
+                      <p className="text-xs md:text-sm text-base-content/60">Open Sandbox</p>
+                    </div>
+                  </div>
+                  <p className="text-sm md:text-base text-base-content/80 mb-3">
+                    Start with a blank editor and write your own problem and solution from scratch.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 text-primary self-end sm:self-center">
+                  <span className="font-medium text-sm md:text-base">Open</span>
+                  <ChevronRightIcon className="size-4 md:size-5" />
+                </div>
+              </div>
+            </div>
+          </Link>
+
           {problems.map((problem) => (
             <Link
               key={problem.id}
@@ -119,7 +151,6 @@ function ProblemsPage() {
       </div>
     </div>
 
-    {/* ✅ Footer */}
     <Footer />
   </div>
 );

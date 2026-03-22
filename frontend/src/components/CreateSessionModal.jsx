@@ -1,6 +1,8 @@
-import { Code2Icon, LoaderIcon, MailIcon, PlusIcon } from "lucide-react";
+import { Code2Icon, LoaderIcon, MailIcon, PlusIcon, PencilIcon } from "lucide-react";
 import { PROBLEMS } from "../data/problems";
 import { useState } from "react";
+
+const CUSTOM_VALUE = "__custom__";
 
 function CreateSessionModal({
   isOpen,
@@ -12,13 +14,36 @@ function CreateSessionModal({
 }) {
   const problems = Object.values(PROBLEMS);
   const [inviteEmail, setInviteEmail] = useState("");
+  const [isCustom, setIsCustom] = useState(false);
+  const [customTitle, setCustomTitle] = useState("");
 
   if (!isOpen) return null;
 
-  const handleCreate = () => {
-    onCreateRoom(inviteEmail);
-    setInviteEmail("");
+  const handleProblemChange = (e) => {
+    const val = e.target.value;
+    if (val === CUSTOM_VALUE) {
+      setIsCustom(true);
+      setRoomConfig({ problem: "", difficulty: "easy" });
+    } else {
+      setIsCustom(false);
+      const selected = problems.find((p) => p.title === val);
+      setRoomConfig({ difficulty: selected.difficulty.toLowerCase(), problem: val });
+    }
   };
+
+  const handleCreate = () => {
+    const finalProblem = isCustom ? (customTitle.trim() || "Custom Problem") : roomConfig.problem;
+    const finalConfig = { ...roomConfig, problem: finalProblem };
+    setRoomConfig(finalConfig);
+    onCreateRoom(inviteEmail, finalConfig);
+    setInviteEmail("");
+    setCustomTitle("");
+    setIsCustom(false);
+  };
+
+  const canCreate = isCustom
+    ? roomConfig.difficulty
+    : !!roomConfig.problem;
 
   return (
     <div className="modal modal-open">
@@ -35,19 +60,13 @@ function CreateSessionModal({
 
             <select
               className="select w-full"
-              value={roomConfig.problem}
-              onChange={(e) => {
-                const selectedProblem = problems.find((p) => p.title === e.target.value);
-                setRoomConfig({
-                  difficulty: selectedProblem.difficulty,
-                  problem: e.target.value,
-                });
-              }}
+              value={isCustom ? CUSTOM_VALUE : roomConfig.problem}
+              onChange={handleProblemChange}
             >
               <option value="" disabled>
                 Choose a coding problem...
               </option>
-
+              <option value={CUSTOM_VALUE}>✏️ Custom Problem (blank editor)</option>
               {problems.map((problem) => (
                 <option key={problem.id} value={problem.title}>
                   {problem.title} ({problem.difficulty})
@@ -55,6 +74,44 @@ function CreateSessionModal({
               ))}
             </select>
           </div>
+
+          {/* CUSTOM PROBLEM FIELDS */}
+          {isCustom && (
+            <div className="space-y-4 p-4 bg-base-200 rounded-xl border border-base-300">
+              <div className="flex items-center gap-2 text-sm font-semibold text-base-content/70">
+                <PencilIcon className="size-4" />
+                Custom Problem Details
+              </div>
+              <div className="space-y-2">
+                <label className="label">
+                  <span className="label-text">Problem Title (optional)</span>
+                </label>
+                <input
+                  type="text"
+                  className="input input-bordered w-full"
+                  placeholder="e.g. My Custom Problem"
+                  value={customTitle}
+                  onChange={(e) => setCustomTitle(e.target.value)}
+                  maxLength={80}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="label">
+                  <span className="label-text font-semibold">Difficulty</span>
+                  <span className="label-text-alt text-error">*</span>
+                </label>
+                <select
+                  className="select w-full"
+                  value={roomConfig.difficulty}
+                  onChange={(e) => setRoomConfig((prev) => ({ ...prev, difficulty: e.target.value }))}
+                >
+                  <option value="easy">Easy</option>
+                  <option value="medium">Medium</option>
+                  <option value="hard">Hard</option>
+                </select>
+              </div>
+            </div>
+          )}
 
           {/* EMAIL INVITE (OPTIONAL) */}
           <div className="space-y-2">
@@ -79,13 +136,16 @@ function CreateSessionModal({
           </div>
 
           {/* ROOM SUMMARY */}
-          {roomConfig.problem && (
+          {(roomConfig.problem || isCustom) && (
             <div className="alert alert-success">
               <Code2Icon className="size-5" />
               <div>
                 <p className="font-semibold">Room Summary:</p>
                 <p>
-                  Problem: <span className="font-medium">{roomConfig.problem}</span>
+                  Problem:{" "}
+                  <span className="font-medium">
+                    {isCustom ? (customTitle.trim() || "Custom Problem") : roomConfig.problem}
+                  </span>
                 </p>
                 <p>
                   Max Participants: <span className="font-medium">2 (1-on-1 session)</span>
@@ -103,14 +163,13 @@ function CreateSessionModal({
           <button
             className="btn btn-primary gap-2"
             onClick={handleCreate}
-            disabled={isCreating || !roomConfig.problem}
+            disabled={isCreating || !canCreate}
           >
             {isCreating ? (
               <LoaderIcon className="size-5 animate-spin" />
             ) : (
               <PlusIcon className="size-5" />
             )}
-
             {isCreating ? "Creating..." : "Create"}
           </button>
         </div>

@@ -42,6 +42,7 @@
 | | 7.3 System Testing | — |
 | **08** | **Limitations** | — |
 | **09** | **Future Enhancement** | — |
+| **09.1** | **Code Modifications Log** | — |
 | **10** | **References** | — |
 | | 10.1 Webliography | — |
 | | 10.2 Bibliography | — |
@@ -180,6 +181,10 @@ Existing tools force interviewers to use 2–3 separate apps simultaneously:
 | FR-10 | Admin shall manage users, sessions, and view analytics |
 | FR-11 | System shall send email notifications for scheduled sessions |
 | FR-12 | Users shall be able to reset password via email token |
+| FR-13 | Users shall be able to create a custom (blank) problem session |
+| FR-14 | System shall execute JavaScript code via sandboxed Node.js vm |
+| FR-15 | System shall execute Python code via child process (Python 3 runtime) |
+| FR-16 | System shall execute Java code via child process (JDK javac + java) |
 
 #### Non-Functional Requirements
 
@@ -236,6 +241,8 @@ Deployment & Documentation                               ███ ███
 | MongoDB | 6+ | Database |
 | npm | 9+ | Package manager |
 | Git | 2+ | Version control |
+| Python | 3.13+ | Server-side Python code execution |
+| JDK (Eclipse Temurin) | 25+ | Server-side Java code compilation and execution |
 | Modern Browser | Chrome 90+ / Firefox 88+ | Client runtime |
 
 #### 5.1.2 Hardware Requirement
@@ -279,6 +286,9 @@ Deployment & Documentation                               ███ ███
 | Server | JWT | Stateless authentication |
 | Server | Nodemailer | Email delivery |
 | Server | Inngest | Scheduled background functions |
+| Server | Multer | File uploads (recordings) |
+| Server | Node.js `vm` module | Sandboxed JavaScript code execution |
+| Server | Node.js `child_process` | Python and Java code execution |
 | Client | React | UI component framework |
 | Client | WebRTC | P2P video/audio |
 | Client | Web Crypto API | ECDH key exchange + AES-GCM encryption |
@@ -591,6 +601,11 @@ Session]  Meeting Code]
 | ST-08 | Theme toggle → footer and all components update colors | ✅ |
 | ST-09 | Frontend build completes with 0 errors, 0 lint warnings | ✅ |
 | ST-10 | Password reset email contains valid hashed token | ✅ |
+| ST-11 | JavaScript code executes via vm sandbox and returns output | ✅ |
+| ST-12 | Python code executes via child process and returns output | ✅ |
+| ST-13 | Java code compiles and executes via JDK child process | ✅ |
+| ST-14 | Custom problem session opens blank editor with no starter code | ✅ |
+| ST-15 | Feedback modal shown to both host and participant on session end | ✅ |
 
 ---
 
@@ -600,7 +615,7 @@ Session]  Meeting Code]
 |---|------------|
 | 1 | WebRTC requires TURN server for users behind strict NAT/firewalls (not included) |
 | 2 | Maximum 2 users per session (P2P architecture) |
-| 3 | Code execution uses external Piston API — requires internet access |
+| 3 | Code execution runs on a local Node.js vm runner (JS) and child process runner (Python/Java) — requires Python 3 and JDK installed on the server |
 | 4 | No persistent code history between sessions |
 | 5 | Recording is client-side only; large files may impact browser performance |
 | 6 | No mobile app — browser only |
@@ -620,6 +635,32 @@ Session]  Meeting Code]
 | 7 | Custom problem creation by interviewers | Low |
 | 8 | Whiteboard / drawing tool alongside code editor | Low |
 
+> **Note:** Custom problem creation (blank editor) has been implemented in v1.0.0 — users can now select "Custom Problem" from the session creation modal or the Problems page to start a free-form blank editor session.
+
+---
+
+## 09.1 Code Modifications Log
+
+The following changes were made to the codebase post initial development:
+
+| # | File(s) Modified | Change | Reason |
+|---|-----------------|--------|--------|
+| 1 | `backend/.env` | Added `DB_URL`, `PORT`, `JWT_SECRET`, `CLIENT_URL` | Missing env file caused server crash on startup |
+| 2 | `frontend/.env` | Added `VITE_API_URL=http://localhost:5000/api` | Missing env caused all API requests to fail (login broken) |
+| 3 | `frontend/src/pages/SessionPage.jsx` | Fixed `isHost` / `isParticipant` comparison from `===` to `.toString() === .toString()` | Object reference comparison always returned `false`; host could not end session or see feedback modal |
+| 4 | `backend/src/controllers/feedbackController.js` | Wrapped `checkFeedback` in try/catch | Unhandled DB errors caused 500 crashes |
+| 5 | `backend/src/models/Feedback.js` | Added `min: 1, max: 5` to `rating` field | No validation allowed invalid ratings (0, 999) to be saved |
+| 6 | `frontend/src/components/CreateSessionModal.jsx` | Added "Custom Problem (blank editor)" option with title + difficulty fields | Users could not start a free-form coding session |
+| 7 | `frontend/src/pages/DashboardPage.jsx` | Updated `handleCreateRoom` to accept `finalConfig` override | Custom problem title was lost due to async `setState` before API call |
+| 8 | `frontend/src/pages/SessionPage.jsx` | Added custom problem fallback UI (no description panel, blank editor) | Sessions with custom problems showed empty/broken left panel |
+| 9 | `frontend/src/pages/ProblemsPage.jsx` | Added "Custom Problem" card linking to `/problem/custom` | No entry point to blank editor from problems list |
+| 10 | `frontend/src/pages/ProblemPage.jsx` | Added `isCustom` mode: blank editor + info panel + problem switcher | `/problem/custom` route crashed due to missing `PROBLEMS["custom"]` lookup |
+| 11 | `frontend/src/lib/piston.js` | Replaced `emkc.org` Piston API with backend `/api/code/run` | Piston public API went whitelist-only on Feb 15, 2026 (returns 401) |
+| 12 | `backend/src/controllers/codeRunnerController.js` | Created new file: JS vm sandbox + Python child process + Java child process runner | Self-hosted code execution replacing dead external API |
+| 13 | `backend/src/routes/codeRunnerRoutes.js` | Created new file: `POST /api/code/run` route | Expose code runner endpoint |
+| 14 | `backend/src/server.js` | Registered `/api/code` route | Wire new code runner into Express app |
+| 15 | `backend/.env` | Added SMTP config (`SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`, etc.) | Email system was silently skipping all sends due to missing SMTP config |
+
 ---
 
 ## 10. References
@@ -637,7 +678,9 @@ Session]  Meeting Code]
 | 7 | Express.js Guide | https://expressjs.com/en/guide |
 | 8 | DaisyUI Components | https://daisyui.com/components |
 | 9 | Vitest Testing | https://vitest.dev |
-| 10 | Piston Code Execution API | https://github.com/engineer-man/piston |
+| 10 | Piston Code Execution (self-hosted) | https://github.com/engineer-man/piston |
+| 11 | Eclipse Temurin JDK | https://adoptium.net |
+| 12 | Python Official | https://www.python.org |
 
 ### 10.2 Bibliography
 

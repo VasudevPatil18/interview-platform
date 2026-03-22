@@ -24,12 +24,13 @@ function DashboardPage() {
   const { data: activeSessionsData, isLoading: loadingActiveSessions } = useActiveSessions();
   const { data: recentSessionsData, isLoading: loadingRecentSessions } = useMyRecentSessions();
 
-  const handleCreateRoom = (inviteEmail) => {
-    if (!roomConfig.problem || !roomConfig.difficulty) return;
+  const handleCreateRoom = (inviteEmail, finalConfig) => {
+    const config = finalConfig || roomConfig;
+    if (!config.problem || !config.difficulty) return;
 
     const payload = {
-      problem: roomConfig.problem,
-      difficulty: roomConfig.difficulty.toLowerCase(),
+      problem: config.problem,
+      difficulty: config.difficulty.toLowerCase(),
     };
 
     // Add inviteEmail if provided

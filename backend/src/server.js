@@ -17,6 +17,7 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 import scheduleRoutes from "./routes/scheduleRoutes.js";
 import recordingRoutes from "./routes/recordingRoutes.js";
 import feedbackRoutes from "./routes/feedbackRoutes.js";
+import codeRunnerRoutes from "./routes/codeRunnerRoutes.js";
 import { env } from "process";
 
 const app = express();
@@ -49,6 +50,7 @@ app.use("/api/inngest", serve({ client: inngest, functions }));
 app.use("/api/sessions", sessionRoutes);
 app.use("/api/sessions", recordingRoutes);
 app.use("/api/feedback", feedbackRoutes);
+app.use("/api/code", codeRunnerRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/schedule", scheduleRoutes);

@@ -35,8 +35,8 @@ function SessionPage() {
   const endSessionMutation = useEndSession();
 
   const session = sessionData?.session;
-  const isHost = session?.host?._id === user?._id;
-  const isParticipant = session?.participant?._id === user?._id;
+  const isHost = session?.host?._id?.toString() === user?._id?.toString();
+  const isParticipant = session?.participant?._id?.toString() === user?._id?.toString();
 
   const problemData = session?.problem
     ? Object.values(PROBLEMS).find((p) => p.title === session.problem)
@@ -252,6 +252,19 @@ function SessionPage() {
                           meetingCode={session.meetingCode}
                           sessionId={session._id}
                         />
+                      )}
+
+                      {/* Custom problem — blank editor, show a hint */}
+                      {!problemData && session?.problem && (
+                        <div className="bg-base-100 rounded-xl shadow-sm p-5 border border-base-300">
+                          <div className="flex items-center gap-2 mb-2">
+                            <CodeIcon className="size-5 text-primary" />
+                            <h2 className="text-xl font-bold text-base-content">Custom Problem</h2>
+                          </div>
+                          <p className="text-base-content/60 text-sm">
+                            This is a free-form session. Use the editor to write and run any code you like.
+                          </p>
+                        </div>
                       )}
 
                       {/* problem desc */}
