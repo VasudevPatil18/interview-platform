@@ -1,87 +1,55 @@
+import { Resend } from "resend";
 import nodemailer from "nodemailer";
 import { ENV } from "./env.js";
 
-// Create reusable transporter
-const createTransporter = () => {
-  // Check if SMTP is configured
-  if (!ENV.SMTP_HOST || !ENV.SMTP_USER || !ENV.SMTP_PASS) {
-    console.log('⚠️  SMTP not configured. Emails will not be sent.');
-    console.log('   Add SMTP settings to backend/.env to enable emails.');
-    return null;
-  }
+// Use Resend if API key is set (works on Render), fallback to SMTP for local dev
+const sendWithResend = async ({ to, subject, html, text }) => {
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const from = ENV.SMTP_FROM || "Talent IQ <onboarding@resend.dev>";
+  const { error } = await resend.emails.send({ from, to, subject, html, text });
+  if (error) throw new Error(error.message);
+  return { success: true };
+};
 
-  try {
-    return nodemailer.createTransport({
-      host: ENV.SMTP_HOST,
-      port: parseInt(ENV.SMTP_PORT) || 587,
-      secure: ENV.SMTP_SECURE === "true",
-      auth: {
-        user: ENV.SMTP_USER,
-        pass: ENV.SMTP_PASS,
-      },
-      // Add timeout and connection settings
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 10000,
-    });
-  } catch (error) {
-    console.error('❌ Failed to create email transporter:', error.message);
-    return null;
+const sendWithSMTP = async ({ to, subject, html, text }) => {
+  if (!ENV.SMTP_HOST || !ENV.SMTP_USER || !ENV.SMTP_PASS) {
+    console.log("⚠️  SMTP not configured. Emails will not be sent.");
+    return { success: false, skipped: true };
   }
+  const transporter = nodemailer.createTransport({
+    host: ENV.SMTP_HOST,
+    port: parseInt(ENV.SMTP_PORT) || 587,
+    secure: ENV.SMTP_SECURE === "true",
+    auth: { user: ENV.SMTP_USER, pass: ENV.SMTP_PASS },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
+  });
+  const info = await transporter.sendMail({
+    from: ENV.SMTP_FROM || '"Talent IQ" <noreply@talentiq.com>',
+    to, subject, html, text,
+  });
+  return { success: true, messageId: info.messageId };
 };
 
 export const sendEmail = async ({ to, subject, html, text }) => {
   try {
-    const transporter = createTransporter();
-    
-    // If no transporter, SMTP is not configured
-    if (!transporter) {
-      console.log('📧 Email NOT sent (SMTP not configured):', { to, subject });
-      console.log('   Configure SMTP in backend/.env to enable emails.');
-      return { success: false, skipped: true, reason: 'SMTP not configured' };
+    console.log("📧 Sending email to:", to);
+    console.log("   Subject:", subject);
+
+    let result;
+    if (process.env.RESEND_API_KEY) {
+      result = await sendWithResend({ to, subject, html, text });
+    } else {
+      result = await sendWithSMTP({ to, subject, html, text });
     }
 
-    const mailOptions = {
-      from: ENV.SMTP_FROM || '"Talent IQ" <noreply@talentiq.com>',
-      to,
-      subject,
-      html,
-      text,
-    };
-
-    console.log('📧 Sending email to:', to);
-    console.log('   Subject:', subject);
-    
-    const info = await transporter.sendMail(mailOptions);
-    
-    console.log('✅ Email sent successfully!');
-    console.log('   Message ID:', info.messageId);
-    console.log('   To:', to);
-    
-    // In development, log additional info
-    if (ENV.NODE_ENV !== "production") {
-      const previewUrl = nodemailer.getTestMessageUrl(info);
-      if (previewUrl) {
-        console.log('   Preview URL:', previewUrl);
-      }
-    }
-    
-    return { success: true, messageId: info.messageId };
+    if (result.skipped) return result;
+    console.log("✅ Email sent successfully to:", to);
+    return result;
   } catch (error) {
-    console.error('❌ Error sending email:', error.message);
-    console.error('   To:', to);
-    console.error('   Subject:', subject);
-    
-    // Log specific error types
-    if (error.code === 'EAUTH') {
-      console.error('   → Authentication failed. Check SMTP_USER and SMTP_PASS');
-    } else if (error.code === 'ECONNECTION') {
-      console.error('   → Connection failed. Check SMTP_HOST and SMTP_PORT');
-    } else if (error.code === 'ETIMEDOUT') {
-      console.error('   → Connection timeout. Check firewall/network settings');
-    }
-    
-    return { success: false, error: error.message, code: error.code };
+    console.error("❌ Error sending email:", error.message);
+    return { success: false, error: error.message };
   }
 };
 
