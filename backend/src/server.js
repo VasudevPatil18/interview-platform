@@ -26,7 +26,28 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: ENV.CLIENT_URL,
+    origin: (origin, callback) => {
+      const allowed = [
+        ENV.CLIENT_URL,
+        "http://localhost:5173",
+        "http://localhost:3000",
+      ].filter(Boolean);
+
+      // Allow requests with no origin (mobile apps, curl, etc.)
+      if (!origin) return callback(null, true);
+
+      // Allow if origin matches or starts with CLIENT_URL (handles Vercel preview URLs)
+      const isAllowed = allowed.some(
+        (url) => origin === url || origin === url.replace(/\/$/, "")
+      );
+
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        console.warn(`CORS blocked: ${origin}`);
+        callback(new Error(`CORS not allowed for origin: ${origin}`));
+      }
+    },
     credentials: true,
   })
 );
