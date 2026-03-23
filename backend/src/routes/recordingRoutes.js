@@ -11,21 +11,11 @@ import {
 
 const router = express.Router();
 
-// Configure multer for file upload
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "recordings/");
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, `session-${req.params.sessionId}-${uniqueSuffix}${path.extname(file.originalname)}`);
-  },
-});
-
+// Use memory storage — avoids ephemeral filesystem issues on Render
 const upload = multer({
-  storage: storage,
+  storage: multer.memoryStorage(),
   limits: {
-    fileSize: 500 * 1024 * 1024, // 500MB max
+    fileSize: 100 * 1024 * 1024, // 100MB max
   },
   fileFilter: (req, file, cb) => {
     const allowedTypes = ["video/webm", "video/mp4"];

@@ -114,15 +114,15 @@ const sessionSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-    // Recording information
+    // Recording information — stored as base64 in DB (no filesystem dependency)
     recording: {
-      path: {
-        type: String,
+      data: {
+        type: String, // base64 encoded video
         default: null,
       },
-      filename: {
+      mimeType: {
         type: String,
-        default: null,
+        default: "video/webm",
       },
       size: {
         type: Number, // in bytes

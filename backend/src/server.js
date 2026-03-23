@@ -1,5 +1,4 @@
 import express from "express";
-import path from "path";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { serve } from "inngest/express";
@@ -18,21 +17,9 @@ import scheduleRoutes from "./routes/scheduleRoutes.js";
 import recordingRoutes from "./routes/recordingRoutes.js";
 import feedbackRoutes from "./routes/feedbackRoutes.js";
 import codeRunnerRoutes from "./routes/codeRunnerRoutes.js";
-import { env } from "process";
+
 
 const app = express();
-const __dirname = path.resolve();
-
-// ✅ Validate Required ENV Variables
-if (!ENV.DB_URL) {
-  console.error("❌ DB_URL is missing in environment variables");
-  process.exit(1);
-}
-
-if (!ENV.PORT) {
-  console.error("❌ PORT is missing in environment variables");
-  process.exit(1);
-}
 
 // middleware
 app.use(express.json());
@@ -59,32 +46,26 @@ app.get("/health", (req, res) => {
   res.status(200).json({ msg: "api is up and running" });
 });
 
-// production setup
-if (ENV.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "../frontend/dist")));
-
-  app.get("/{*any}", (req, res) => {
-    res.sendFile(
-      path.join(__dirname, "../frontend", "dist", "index.html")
-    );
-  });
-}
-
 const startServer = async () => {
   try {
-    // ✅ Connect Database First
     await connectDB();
     console.log("✅ MongoDB Connected Successfully");
 
     const httpServer = createServer(app);
-
     initializeSocket(httpServer);
     console.log("✅ Socket.io initialized");
 
     httpServer.listen(ENV.PORT, () => {
       console.log(`🚀 Server running on port ${ENV.PORT}`);
-      console.log("🌐 WebRTC signaling server ready");
     });
+
+    // Graceful shutdown
+    const shutdown = () => {
+      console.log("🛑 Shutting down gracefully...");
+      httpServer.close(() => process.exit(0));
+    };
+    process.on("SIGTERM", shutdown);
+    process.on("SIGINT", shutdown);
   } catch (error) {
     console.error("💥 Error starting the server:", error.message);
     process.exit(1);

@@ -7,6 +7,12 @@ const ICE_SERVERS = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
+    // Free TURN servers from open-relay (metered.ca) — replace with your own for production
+    ...(import.meta.env.VITE_TURN_URL ? [{
+      urls: import.meta.env.VITE_TURN_URL,
+      username: import.meta.env.VITE_TURN_USERNAME,
+      credential: import.meta.env.VITE_TURN_CREDENTIAL,
+    }] : []),
   ],
 };
 
@@ -42,7 +48,9 @@ export function useWebRTC(session, user, isHost, isParticipant) {
   useEffect(() => {
     if (!session || !user || (!isHost && !isParticipant)) return;
 
-    const API_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
+    const API_URL = import.meta.env.VITE_SOCKET_URL || 
+      import.meta.env.VITE_API_URL?.replace('/api', '') || 
+      'http://localhost:5000';
 
     const socketInstance = io(API_URL, {
       transports: ['websocket', 'polling'],

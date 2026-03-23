@@ -5,9 +5,13 @@ import { tmpdir } from "os";
 import { join } from "path";
 import { randomBytes } from "crypto";
 
-const JAVA_BIN = "C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.2.10-hotspot\\bin";
-const PYTHON_BIN = "C:\\Users\\ADMIN\\AppData\\Local\\Programs\\Python\\Python313\\python.exe";
-const TIMEOUT_MS = 10000;
+// Use system PATH commands — works on Linux (Render) and Windows
+const JAVA_BIN = process.env.JAVA_BIN || "";
+const PYTHON_BIN = process.env.PYTHON_BIN || (process.platform === "win32" ? "python" : "python3");
+const TIMEOUT_MS = 5000;
+
+const javacCmd = JAVA_BIN ? `"${JAVA_BIN}/javac"` : "javac";
+const javaCmd  = JAVA_BIN ? `"${JAVA_BIN}/java"`  : "java";
 
 export async function runCode(req, res) {
   const { code, language = "javascript" } = req.body;
@@ -60,13 +64,13 @@ function runJavaScript(code) {
   }
 }
 
-// Python — write temp file, run with python
+// Python — write temp file, run with python3
 async function runPython(code) {
   const id = randomBytes(8).toString("hex");
   const filePath = join(tmpdir(), `runner_${id}.py`);
   await writeFile(filePath, code, "utf8");
   try {
-    const output = await execPromise(`"${PYTHON_BIN}" "${filePath}"`, TIMEOUT_MS);
+    const output = await execPromise(`${PYTHON_BIN} "${filePath}"`, TIMEOUT_MS);
     return { success: true, output: output.trim() || "No output" };
   } catch (err) {
     return { success: false, error: err.stderr || err.message };
@@ -74,6 +78,7 @@ async function runPython(code) {
     unlink(filePath).catch(() => {});
   }
 }
+
 async function runJava(code) {
   const classMatch = code.match(/public\s+class\s+(\w+)/);
   const className = classMatch ? classMatch[1] : "Main";
@@ -85,12 +90,9 @@ async function runJava(code) {
   const filePath = join(dir, `${className}.java`);
   await writeFile(filePath, code, "utf8");
 
-  const javac = `"${JAVA_BIN}\\javac.exe"`;
-  const java  = `"${JAVA_BIN}\\java.exe"`;
-
   try {
-    await execPromise(`${javac} "${filePath}"`, TIMEOUT_MS);
-    const output = await execPromise(`${java} -cp "${dir}" ${className}`, TIMEOUT_MS);
+    await execPromise(`${javacCmd} "${filePath}"`, TIMEOUT_MS);
+    const output = await execPromise(`${javaCmd} -cp "${dir}" ${className}`, TIMEOUT_MS);
     return { success: true, output: output.trim() || "No output" };
   } catch (err) {
     return { success: false, error: err.stderr || err.message };
