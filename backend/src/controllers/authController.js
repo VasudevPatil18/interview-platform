@@ -47,7 +47,7 @@ export async function signup(req, res) {
     res.cookie("token", token, {
       httpOnly: true,
       secure: ENV.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: ENV.NODE_ENV === "production" ? "none" : "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
@@ -111,7 +111,7 @@ export async function login(req, res) {
     res.cookie("token", token, {
       httpOnly: true,
       secure: ENV.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: ENV.NODE_ENV === "production" ? "none" : "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -133,7 +133,11 @@ export async function login(req, res) {
 
 export async function logout(req, res) {
   try {
-    res.cookie("token", "", { maxAge: 0 });
+    res.cookie("token", "", { 
+      maxAge: 0,
+      secure: ENV.NODE_ENV === "production",
+      sameSite: ENV.NODE_ENV === "production" ? "none" : "strict",
+    });
     res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
     console.error("Error in logout controller:", error);
