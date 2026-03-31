@@ -35,9 +35,10 @@ export function useWebRTC(session, user, isHost, isParticipant) {
   const screenStream = useRef(null);
   const connectionTimeoutRef = useRef(null);
   const socketRef = useRef(null);
-  const localStreamRef = useRef(null);       // always-current ref to avoid stale closures
-  const keyExchangeDoneRef = useRef(false);  // BUG FIX #1: prevent infinite key exchange loop
-  const stopScreenShareRef = useRef(null);   // BUG FIX #9: forward-ref for stopScreenShare
+  const localStreamRef = useRef(null);
+  const keyExchangeDoneRef = useRef(false);
+  const stopScreenShareRef = useRef(null);
+  const pendingOfferRef = useRef(null); // store offer if stream not ready yet
 
   // Keep localStreamRef in sync with state
   useEffect(() => {
@@ -82,8 +83,12 @@ export function useWebRTC(session, user, isHost, isParticipant) {
       if (connectionTimeoutRef.current) clearTimeout(connectionTimeoutRef.current);
       if (users.length > 0) {
         setRemoteUser(users[0]);
-        // BUG FIX #2: use ref-based createOffer so it always has current socket/stream
-        createOfferRef.current(users[0].socketId);
+        // If stream is ready, create offer now. Otherwise store and wait.
+        if (localStreamRef.current) {
+          createOfferRef.current(users[0].socketId);
+        } else {
+          pendingOfferRef.current = users[0].socketId;
+        }
       }
       setIsConnecting(false);
     });
@@ -181,7 +186,14 @@ export function useWebRTC(session, user, isHost, isParticipant) {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         acquired = stream;
+        localStreamRef.current = stream;
         setLocalStream(stream);
+
+        // If we received existing-users before stream was ready, create offer now
+        if (pendingOfferRef.current) {
+          createOfferRef.current(pendingOfferRef.current);
+          pendingOfferRef.current = null;
+        }
       } catch (error) {
         console.error('Error accessing media devices:', error);
         if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
@@ -262,8 +274,19 @@ export function useWebRTC(session, user, isHost, isParticipant) {
 
   handleOfferRef.current = async (offer, remoteSocketId) => {
     const sock = socketRef.current;
+
+    // Wait up to 5s for stream to be ready before handling offer
+    let attempts = 0;
+    while (!localStreamRef.current && attempts < 50) {
+      await new Promise((r) => setTimeout(r, 100));
+      attempts++;
+    }
+
     const stream = localStreamRef.current;
-    if (!sock || !stream) return;
+    if (!sock || !stream) {
+      console.error('Cannot handle offer: socket or stream not ready');
+      return;
+    }
 
     const pc = createPeerConnectionRef.current(remoteSocketId);
     try {
