@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { BellIcon, CheckIcon, TrashIcon, XIcon } from "lucide-react";
 import { useNavigate } from "react-router";
 import axios from "../lib/axios";
@@ -10,6 +10,7 @@ function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const dropdownRef = useRef(null);
 
   const fetchNotifications = async () => {
     try {
@@ -26,10 +27,19 @@ function NotificationBell() {
 
   useEffect(() => {
     fetchNotifications();
-    
-    // Poll for new notifications every 30 seconds
     const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Close on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const markAsRead = async (id) => {
@@ -108,9 +118,8 @@ function NotificationBell() {
   };
 
   return (
-    <div className="dropdown dropdown-end">
+    <div className="relative" ref={dropdownRef}>
       <button
-        tabIndex={0}
         className="btn btn-ghost btn-circle relative"
         onClick={() => setIsOpen(!isOpen)}
       >
@@ -123,12 +132,9 @@ function NotificationBell() {
       </button>
 
       {isOpen && (
-        <div
-          tabIndex={0}
-          className="dropdown-content z-50 card card-compact w-96 max-h-[600px] overflow-y-auto p-0 shadow-2xl bg-base-100 border border-base-300 mt-3"
-        >
+        <div className="absolute right-0 top-12 z-50 w-96 max-h-[600px] overflow-y-auto shadow-2xl bg-base-100 border border-base-300 rounded-2xl">
           {/* Header */}
-          <div className="sticky top-0 bg-base-100 border-b border-base-300 p-4 flex items-center justify-between z-10">
+          <div className="sticky top-0 bg-base-100 border-b border-base-300 p-4 flex items-center justify-between z-10 rounded-t-2xl">
             <h3 className="font-bold text-lg">Notifications</h3>
             <div className="flex items-center gap-2">
               {unreadCount > 0 && (
