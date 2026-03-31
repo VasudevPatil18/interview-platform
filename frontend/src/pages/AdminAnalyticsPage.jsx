@@ -4,10 +4,12 @@ import Navbar from "../components/Navbar";
 import { BarChart3Icon, TrendingUpIcon, PieChartIcon, ActivityIcon } from "lucide-react";
 import toast from "react-hot-toast";
 import Footer from "../components/Footer";
+import { useCountUp } from "../hooks/useCountUp";
 
 function AdminAnalyticsPage() {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
+  const completionRate = useCountUp(analytics?.completionRate ?? 0);
 
   useEffect(() => {
     fetchAnalytics();
@@ -55,7 +57,7 @@ function AdminAnalyticsPage() {
                 <ActivityIcon className="size-8" />
               </div>
               <div className="stat-title">Completion Rate</div>
-              <div className="stat-value text-success">{analytics?.completionRate}%</div>
+              <div className="stat-value text-success">{completionRate}%</div>
               <div className="stat-desc">Sessions completed successfully</div>
             </div>
           </div>

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import Footer from "../components/Footer";
+import { useCountUp } from "../hooks/useCountUp";
 
 function AdminDashboardPage() {
   const [stats, setStats] = useState(null);
@@ -32,6 +33,13 @@ function AdminDashboardPage() {
       setLoading(false);
     }
   };
+
+  const totalUsers = useCountUp(stats?.totalUsers || 0);
+  const activeUsers = useCountUp(stats?.activeUsers || 0);
+  const totalSessions = useCountUp(stats?.totalSessions || 0);
+  const activeSessions = useCountUp(stats?.activeSessions || 0);
+  const completedSessions = useCountUp(stats?.completedSessions || 0);
+  const newUsersThisWeek = useCountUp(stats?.newUsersThisWeek || 0);
 
   if (loading) {
     return (
@@ -66,8 +74,8 @@ function AdminDashboardPage() {
                 <UsersIcon className="size-8" />
               </div>
               <div className="stat-title">Total Users</div>
-              <div className="stat-value text-primary">{stats?.totalUsers || 0}</div>
-              <div className="stat-desc">{stats?.activeUsers || 0} active</div>
+              <div className="stat-value text-primary">{totalUsers}</div>
+              <div className="stat-desc">{activeUsers} active</div>
             </div>
           </div>
 
@@ -78,8 +86,8 @@ function AdminDashboardPage() {
                 <VideoIcon className="size-8" />
               </div>
               <div className="stat-title">Total Sessions</div>
-              <div className="stat-value text-secondary">{stats?.totalSessions || 0}</div>
-              <div className="stat-desc">{stats?.activeSessions || 0} active now</div>
+              <div className="stat-value text-secondary">{totalSessions}</div>
+              <div className="stat-desc">{activeSessions} active now</div>
             </div>
           </div>
 
@@ -90,7 +98,7 @@ function AdminDashboardPage() {
                 <CheckCircle2Icon className="size-8" />
               </div>
               <div className="stat-title">Completed</div>
-              <div className="stat-value text-success">{stats?.completedSessions || 0}</div>
+              <div className="stat-value text-success">{completedSessions}</div>
               <div className="stat-desc">All time</div>
             </div>
           </div>
@@ -102,7 +110,7 @@ function AdminDashboardPage() {
                 <TrendingUpIcon className="size-8" />
               </div>
               <div className="stat-title">New This Week</div>
-              <div className="stat-value text-accent">{stats?.newUsersThisWeek || 0}</div>
+              <div className="stat-value text-accent">{newUsersThisWeek}</div>
               <div className="stat-desc">Last 7 days</div>
             </div>
           </div>
