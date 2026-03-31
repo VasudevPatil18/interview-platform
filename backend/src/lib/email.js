@@ -5,28 +5,24 @@ import { ENV } from "./env.js";
 // Use Resend if API key is set (works on Render), fallback to SMTP for local dev
 const sendWithResend = async ({ to, subject, html, text }) => {
   const resend = new Resend(process.env.RESEND_API_KEY);
-  const from = ENV.SMTP_FROM || "Talent IQ <onboarding@resend.dev>";
+  // Must use onboarding@resend.dev until you verify a custom domain
+  const from = "Talent IQ <onboarding@resend.dev>";
   const { error } = await resend.emails.send({ from, to, subject, html, text });
   if (error) throw new Error(error.message);
   return { success: true };
 };
 
 const sendWithSMTP = async ({ to, subject, html, text }) => {
-  if (!ENV.SMTP_HOST || !ENV.SMTP_USER || !ENV.SMTP_PASS) {
+  if (!ENV.SMTP_USER || !ENV.SMTP_PASS) {
     console.log("⚠️  SMTP not configured. Emails will not be sent.");
     return { success: false, skipped: true };
   }
   const transporter = nodemailer.createTransport({
-    host: ENV.SMTP_HOST,
-    port: parseInt(ENV.SMTP_PORT) || 587,
-    secure: ENV.SMTP_SECURE === "true",
+    service: "gmail",
     auth: { user: ENV.SMTP_USER, pass: ENV.SMTP_PASS },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 10000,
   });
   const info = await transporter.sendMail({
-    from: ENV.SMTP_FROM || '"Talent IQ" <noreply@talentiq.com>',
+    from: `"Talent IQ" <${ENV.SMTP_USER}>`,
     to, subject, html, text,
   });
   return { success: true, messageId: info.messageId };
@@ -37,15 +33,21 @@ export const sendEmail = async ({ to, subject, html, text }) => {
     console.log("📧 Sending email to:", to);
     console.log("   Subject:", subject);
 
-    let result;
+    // Try Resend first (works on Render, but needs verified domain for non-owner emails)
     if (process.env.RESEND_API_KEY) {
-      result = await sendWithResend({ to, subject, html, text });
-    } else {
-      result = await sendWithSMTP({ to, subject, html, text });
+      try {
+        const result = await sendWithResend({ to, subject, html, text });
+        console.log("✅ Email sent via Resend to:", to);
+        return result;
+      } catch (resendErr) {
+        console.warn("⚠️  Resend failed, falling back to Gmail SMTP:", resendErr.message);
+      }
     }
 
+    // Fallback to Gmail SMTP
+    const result = await sendWithSMTP({ to, subject, html, text });
     if (result.skipped) return result;
-    console.log("✅ Email sent successfully to:", to);
+    console.log("✅ Email sent via Gmail SMTP to:", to);
     return result;
   } catch (error) {
     console.error("❌ Error sending email:", error.message);
