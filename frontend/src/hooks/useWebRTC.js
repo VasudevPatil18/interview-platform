@@ -54,12 +54,13 @@ export function useWebRTC(session, user, isHost, isParticipant) {
       'http://localhost:5000';
 
     const socketInstance = io(API_URL, {
-      transports: ['polling', 'websocket'], // polling first — more reliable on Render free tier
+      transports: ['polling', 'websocket'],
       reconnection: true,
       reconnectionAttempts: 3,
       reconnectionDelay: 3000,
       reconnectionDelayMax: 10000,
-      timeout: 60000, // 60s — Render free tier can take up to 50s to wake
+      timeout: 60000,
+      autoUnref: false,
     });
 
     connectionTimeoutRef.current = setTimeout(() => {
@@ -137,7 +138,11 @@ export function useWebRTC(session, user, isHost, isParticipant) {
 
     socketInstance.on('offer', async ({ offer, from, userName }) => {
       console.log('Received offer from:', userName);
-      await handleOfferRef.current(offer, from);
+      try {
+        await handleOfferRef.current(offer, from);
+      } catch (e) {
+        console.error('Error in offer handler:', e);
+      }
     });
 
     socketInstance.on('answer', async ({ answer }) => {
