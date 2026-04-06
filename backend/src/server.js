@@ -32,7 +32,6 @@ const corsOptions = {
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors(corsOptions));
-app.options("/(.*)", cors(corsOptions)); // handle preflight for all routes
 
 // routes
 app.use("/api/auth", authRoutes);
