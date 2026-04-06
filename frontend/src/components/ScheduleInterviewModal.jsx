@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 function ScheduleInterviewModal({ isOpen, onClose, onSuccess }) {
   const problems = Object.values(PROBLEMS);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCustom, setIsCustom] = useState(false);
   const [formData, setFormData] = useState({
     problem: "",
     difficulty: "",
@@ -26,13 +27,20 @@ function ScheduleInterviewModal({ isOpen, onClose, onSuccess }) {
   };
 
   const handleProblemChange = (e) => {
-    const selectedProblem = problems.find(p => p.title === e.target.value);
-    setFormData(prev => ({
-      ...prev,
-      problem: e.target.value,
-      difficulty: selectedProblem?.difficulty || "",
-      title: `Interview: ${e.target.value}`,
-    }));
+    const val = e.target.value;
+    if (val === "__custom__") {
+      setIsCustom(true);
+      setFormData(prev => ({ ...prev, problem: "", difficulty: "", title: "" }));
+    } else {
+      setIsCustom(false);
+      const selectedProblem = problems.find(p => p.title === val);
+      setFormData(prev => ({
+        ...prev,
+        problem: val,
+        difficulty: selectedProblem?.difficulty || "",
+        title: `Interview: ${val}`,
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -40,6 +48,10 @@ function ScheduleInterviewModal({ isOpen, onClose, onSuccess }) {
     
     if (!formData.problem || !formData.candidateEmail || !formData.scheduledDate || !formData.scheduledTime) {
       toast.error("Please fill in all required fields");
+      return;
+    }
+    if (isCustom && !formData.difficulty) {
+      toast.error("Please select a difficulty for your custom problem");
       return;
     }
 
@@ -110,18 +122,58 @@ function ScheduleInterviewModal({ isOpen, onClose, onSuccess }) {
             <select
               name="problem"
               className="select select-bordered w-full"
-              value={formData.problem}
+              value={isCustom ? "__custom__" : formData.problem}
               onChange={handleProblemChange}
               required
             >
               <option value="">Choose a coding problem...</option>
-              {problems.map((problem) => (
-                <option key={problem.id} value={problem.title}>
-                  {problem.title} ({problem.difficulty})
-                </option>
-              ))}
+              <option value="__custom__">✏️ Custom Problem (your own)</option>
+              <optgroup label="Problems">
+                {problems.map((problem) => (
+                  <option key={problem.id} value={problem.title}>
+                    {problem.title} ({problem.difficulty})
+                  </option>
+                ))}
+              </optgroup>
             </select>
           </div>
+
+          {/* Custom Problem Fields */}
+          {isCustom && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-semibold">Problem Title *</span>
+                </label>
+                <input
+                  type="text"
+                  name="problem"
+                  className="input input-bordered w-full"
+                  placeholder="e.g., Design a Rate Limiter"
+                  value={formData.problem}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-semibold">Difficulty *</span>
+                </label>
+                <select
+                  name="difficulty"
+                  className="select select-bordered w-full"
+                  value={formData.difficulty}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Select difficulty...</option>
+                  <option value="easy">Easy</option>
+                  <option value="medium">Medium</option>
+                  <option value="hard">Hard</option>
+                </select>
+              </div>
+            </div>
+          )
 
           {/* Candidate Email */}
           <div className="form-control">
@@ -262,7 +314,7 @@ function ScheduleInterviewModal({ isOpen, onClose, onSuccess }) {
             <button
               type="submit"
               className="btn btn-primary gap-2"
-              disabled={isLoading || !formData.problem || !formData.candidateEmail || !formData.scheduledDate || !formData.scheduledTime}
+              disabled={isLoading || !formData.problem || !formData.candidateEmail || !formData.scheduledDate || !formData.scheduledTime || (isCustom && !formData.difficulty)}
             >
               {isLoading ? (
                 <>
