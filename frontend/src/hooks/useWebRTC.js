@@ -189,23 +189,34 @@ export function useWebRTC(session, user, isHost, isParticipant) {
         acquired = stream;
         localStreamRef.current = stream;
         setLocalStream(stream);
-
-        // If we received existing-users before stream was ready, create offer now
-        if (pendingOfferRef.current) {
-          createOfferRef.current(pendingOfferRef.current);
-          pendingOfferRef.current = null;
-        }
       } catch (error) {
         console.error('Error accessing media devices:', error);
-        if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-          toast.error('Camera/microphone access denied. Please allow permissions and refresh.');
-        } else if (error.name === 'NotFoundError') {
-          toast.error('No camera or microphone found. Please connect a device.');
-        } else {
-          toast.error('Failed to access camera/microphone: ' + error.message);
+        // Create a silent audio-only stream as fallback so WebRTC still works
+        try {
+          const audioOnly = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
+          acquired = audioOnly;
+          localStreamRef.current = audioOnly;
+          setLocalStream(audioOnly);
+          toast('No camera found — connecting with audio only', { icon: '🎤' });
+        } catch {
+          // No media at all — create empty stream so WebRTC can still connect
+          const emptyStream = new MediaStream();
+          localStreamRef.current = emptyStream;
+          setLocalStream(emptyStream);
+          if (error.name === 'NotAllowedError') {
+            toast.error('Camera/microphone access denied. Please allow permissions and refresh.');
+          } else {
+            toast('No camera/mic found — connecting without media', { icon: '⚠️' });
+          }
         }
-        setIsConnecting(false);
       }
+
+      // Fire pending offer now that stream (or fallback) is ready
+      if (pendingOfferRef.current) {
+        createOfferRef.current(pendingOfferRef.current);
+        pendingOfferRef.current = null;
+      }
+      setIsConnecting(false);
     };
 
     getLocalStream();
