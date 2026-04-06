@@ -54,17 +54,18 @@ export function useWebRTC(session, user, isHost, isParticipant) {
       'http://localhost:5000';
 
     const socketInstance = io(API_URL, {
-      transports: ['websocket', 'polling'],
+      transports: ['polling', 'websocket'], // polling first — more reliable on Render free tier
       reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-      timeout: 10000,
+      reconnectionAttempts: 3,
+      reconnectionDelay: 3000,
+      reconnectionDelayMax: 10000,
+      timeout: 60000, // 60s — Render free tier can take up to 50s to wake
     });
 
     connectionTimeoutRef.current = setTimeout(() => {
       setIsConnecting(false);
-      toast.error('Connection timeout. Please check your network and refresh.');
-    }, 15000);
+      toast.error('Server is waking up — please wait 30 seconds and refresh the page.');
+    }, 70000);
 
     socketInstance.on('connect', async () => {
       console.log('Socket connected:', socketInstance.id);

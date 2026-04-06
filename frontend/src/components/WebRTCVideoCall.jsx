@@ -142,9 +142,14 @@ function WebRTCVideoCall({ user, webrtc, currentCode, currentLanguage }) {
   if (isConnecting) {
     return (
       <div className="h-full flex items-center justify-center bg-base-200">
-        <div className="text-center">
-          <Loader2Icon className="w-12 h-12 mx-auto animate-spin text-primary mb-4" />
-          <p className="text-lg">Connecting to call...</p>
+        <div className="text-center max-w-sm">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+            <Loader2Icon className="w-8 h-8 animate-spin text-primary" />
+          </div>
+          <p className="text-lg font-semibold mb-2">Connecting to server...</p>
+          <p className="text-sm text-base-content/50">
+            If this takes more than 30 seconds, the server is waking up from sleep. Please wait — it will connect automatically.
+          </p>
         </div>
       </div>
     );

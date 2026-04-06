@@ -290,19 +290,19 @@ Current Interview Setup (3 separate tools):
 
 ```
 Talent IQ — Unified Solution:
-┌──────────────────────────────────────────────────────────────┐
-│                        TALENT IQ                             │
-│                                                              │
+┌──────────────────────────────────────────────────────────=─┐
+│                        TALENT IQ                           │
+│                                                            │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐  │
 │  │  HD Video    │  │  Encrypted   │  │   Scheduling +   │  │
 │  │  P2P Call    │  │  Code Editor │  │   Email Alerts   │  │
 │  └──────────────┘  └──────────────┘  └──────────────────┘  │
-│                                                              │
+│                                                            │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐  │
 │  │  Multi-lang  │  │   Mutual     │  │  Admin Panel +   │  │
 │  │  Code Runner │  │   Feedback   │  │   Analytics      │  │
 │  └──────────────┘  └──────────────┘  └──────────────────┘  │
-└──────────────────────────────────────────────────────────────┘
+└────────────────────────────────────────────────────────────┘
 ```
 
 The new system addresses all identified problems:
@@ -374,3 +374,1071 @@ The new system addresses all identified problems:
 | **Free Tier** | Render free tier spins down after 15 min of inactivity |
 
 ---
+
+# 04. SYSTEM PLANNING
+
+## 4.1 Requirement Analysis & Data Gathering
+
+### Stakeholder Analysis
+
+| Stakeholder | Role | Primary Needs |
+|-------------|------|---------------|
+| **Interviewer (Host)** | Creates session, evaluates candidate | Easy session creation, code visibility, feedback |
+| **Candidate (Participant)** | Joins session, writes code | Smooth join experience, code execution, feedback |
+| **Admin** | Manages platform | User control, session monitoring, analytics |
+| **System** | Handles signaling, encryption, notifications | Reliability, security, performance |
+
+### Data Gathering Methods
+
+| Method | Details |
+|--------|---------|
+| **Literature Survey** | Studied WebRTC, Socket.io, Web Crypto API documentation |
+| **Competitive Analysis** | Analyzed HackerRank, CoderPad, Pramp, LeetCode |
+| **User Interviews** | Gathered requirements from students and developers |
+| **Prototype Testing** | Built and tested iterative prototypes |
+
+### Data Flow Analysis
+
+```
+User Input → React Frontend → Axios HTTP → Express API → MongoDB
+                    ↕
+              Socket.io ←→ Socket Server ←→ Other User
+                    ↕
+              WebRTC P2P ←→ (Direct Browser-to-Browser)
+```
+
+---
+
+## 4.2 Time-line Chart (Gantt Chart)
+
+```
+Phase                        Wk1  Wk2  Wk3  Wk4  Wk5  Wk6  Wk7  Wk8
+─────────────────────────────────────────────────────────────────────────
+1. Requirement Analysis      ████ ████
+2. UI/UX Design                   ████ ████
+3. Backend API Development             ████ ████ ████
+4. Database Design                     ████ ████
+5. Frontend Development                     ████ ████ ████
+6. WebRTC Integration                            ████ ████
+7. Socket.io & Code Sync                         ████ ████
+8. E2E Encryption                                     ████
+9. Code Execution Engine                              ████ ████
+10. Admin Panel                                            ████ ████
+11. Email & Notifications                                  ████ ████
+12. Testing & Bug Fixes                                         ████ ████
+13. Deployment                                                       ████
+14. Documentation                                                    ████
+```
+
+### Milestone Summary
+
+| Milestone | Target Week | Status |
+|-----------|-------------|--------|
+| Backend API complete | Week 4 | ✅ Done |
+| Frontend UI complete | Week 5 | ✅ Done |
+| WebRTC video call working | Week 6 | ✅ Done |
+| E2E encryption working | Week 6 | ✅ Done |
+| Code execution working | Week 7 | ✅ Done |
+| Admin panel complete | Week 7 | ✅ Done |
+| Deployed to production | Week 8 | ✅ Done |
+| Documentation complete | Week 8 | ✅ Done |
+
+---
+
+# 05. TOOLS & ENVIRONMENT USED
+
+## 5.1 Hardware and Software Requirement
+
+### 5.1.1 Software Requirement
+
+**Development Environment:**
+
+| Software | Version | Purpose |
+|----------|---------|---------|
+| Node.js | 18.x LTS | Backend JavaScript runtime |
+| npm | 9.x | Package manager |
+| MongoDB | 6.x | NoSQL database |
+| Git | 2.x | Version control |
+| VS Code | Latest | Code editor (IDE) |
+| Python | 3.13+ | Server-side Python code execution |
+| JDK (Eclipse Temurin) | 25+ | Java compilation and execution |
+| Chrome / Firefox | 90+ | Development and testing browser |
+
+**Production Environment:**
+
+| Service | Purpose |
+|---------|---------|
+| Render.com | Node.js backend hosting |
+| Vercel.com | React frontend hosting |
+| MongoDB Atlas | Cloud database (M0 free cluster) |
+| Resend.com | Email delivery service |
+| GitHub | Source code repository + CI/CD |
+
+---
+
+### 5.1.2 Hardware Requirement
+
+**Server (Render Free Tier):**
+
+| Component | Specification |
+|-----------|--------------|
+| CPU | 0.1 vCPU (shared) |
+| RAM | 512 MB |
+| Storage | Ephemeral (no persistent disk) |
+| Network | Unlimited bandwidth |
+| OS | Linux (Ubuntu) |
+
+**Client (User's Device — Minimum):**
+
+| Component | Minimum | Recommended |
+|-----------|---------|-------------|
+| CPU | Dual-core 2 GHz | Quad-core 3 GHz |
+| RAM | 4 GB | 8 GB |
+| Storage | 1 GB free (browser cache) | 5 GB SSD |
+| Network | 2 Mbps | 10 Mbps |
+| Camera | 720p webcam | 1080p webcam |
+| Microphone | Any built-in | Noise-cancelling headset |
+| Display | 1280×720 | 1920×1080 |
+
+---
+
+### 5.1.3 Technology to be Used
+
+#### Complete Technology Stack
+
+```
+╔══════════════════════════════════════════════════════════════╗
+║                    TALENT IQ TECH STACK                      ║
+╠══════════════════════╦═══════════════════════════════════════╣
+║     FRONTEND         ║           BACKEND                     ║
+║                      ║                                       ║
+║  React 19            ║  Node.js 18 + Express 5               ║
+║  Vite 7 (bundler)    ║  MongoDB 6 + Mongoose 8               ║
+║  TailwindCSS 4       ║  Socket.io 4 (WebSocket)              ║
+║  DaisyUI 5           ║  JWT (jsonwebtoken)                   ║
+║  Monaco Editor       ║  Bcryptjs (password hashing)          ║
+║  Socket.io-client 4  ║  Nodemailer + Resend (email)          ║
+║  React Query 5       ║  Multer (file uploads)                ║
+║  React Router 7      ║  Inngest (background jobs)            ║
+║  Axios               ║  Node.js vm (JS sandbox)              ║
+║  Web Crypto API      ║  child_process (Python/Java)          ║
+║  WebRTC (native)     ║  Vitest (unit testing)                ║
+║  Lucide React        ║  fast-check (property testing)        ║
+║  React Hot Toast     ║                                       ║
+╠══════════════════════╬═══════════════════════════════════════╣
+║     DATABASE         ║         DEPLOYMENT                    ║
+║                      ║                                       ║
+║  MongoDB Atlas       ║  Render.com (backend)                 ║
+║  Collections:        ║  Vercel.com (frontend)                ║
+║  - users             ║  GitHub Actions (CI/CD)               ║
+║  - sessions          ║  MongoDB Atlas (cloud DB)             ║
+║  - feedbacks         ║  Resend API (email)                   ║
+║  - notifications     ║  UptimeRobot (monitoring)             ║
+╚══════════════════════╩═══════════════════════════════════════╝
+```
+
+#### Technology Descriptions
+
+**React 19** — A JavaScript library for building user interfaces using a component-based architecture. Used for all frontend UI components.
+
+**Vite 7** — A next-generation frontend build tool that provides extremely fast Hot Module Replacement (HMR) during development and optimized production builds.
+
+**TailwindCSS 4** — A utility-first CSS framework that enables rapid UI development without writing custom CSS.
+
+**DaisyUI 5** — A component library built on top of TailwindCSS providing pre-built UI components like buttons, cards, modals, and stats.
+
+**Monaco Editor** — The same code editor engine that powers VS Code. Provides syntax highlighting, auto-completion, and multi-language support.
+
+**WebRTC** — Web Real-Time Communication is a browser-native API that enables peer-to-peer audio, video, and data communication without plugins.
+
+**Web Crypto API** — A browser-native cryptography API used for ECDH key exchange and AES-GCM encryption/decryption.
+
+**Socket.io 4** — A real-time bidirectional event-based communication library built on WebSocket with automatic fallback to HTTP long-polling.
+
+**Node.js + Express 5** — The backend runtime and web framework for building the REST API and WebSocket server.
+
+**MongoDB + Mongoose** — A NoSQL document database with an ODM (Object Document Mapper) for schema definition and validation.
+
+**JWT** — JSON Web Tokens for stateless authentication. Tokens are signed with a secret key and expire after 7 days.
+
+**Bcryptjs** — A library for hashing passwords using the bcrypt algorithm with configurable salt rounds (10 rounds used).
+
+---
+
+## 5.2 Server-Side and Client-Side Tools
+
+### Server-Side Tools
+
+| Tool | Version | Role |
+|------|---------|------|
+| Express.js | 5.x | REST API framework — handles HTTP routes |
+| Socket.io | 4.x | Real-time signaling server for WebRTC and code sync |
+| Mongoose | 8.x | MongoDB ODM — schema definition and DB queries |
+| JWT | 9.x | Stateless authentication token generation and verification |
+| Bcryptjs | 3.x | Password hashing with salt rounds |
+| Nodemailer | 8.x | SMTP email sending (Gmail fallback) |
+| Resend | 4.x | HTTP-based email API (primary email service) |
+| Multer | 2.x | Multipart form data handling for file uploads |
+| Inngest | 3.x | Background job scheduling and event-driven functions |
+| Node.js `vm` | Built-in | Sandboxed JavaScript code execution |
+| Node.js `child_process` | Built-in | Python and Java code execution via subprocess |
+| Node.js `crypto` | Built-in | SHA-256 hashing for password reset tokens |
+| Cookie-parser | 1.x | HTTP cookie parsing middleware |
+| CORS | 2.x | Cross-Origin Resource Sharing middleware |
+| Dotenv | 17.x | Environment variable loading from .env files |
+
+### Client-Side Tools
+
+| Tool | Version | Role |
+|------|---------|------|
+| React | 19.x | UI component framework |
+| React Router | 7.x | Client-side routing and navigation |
+| React Query (TanStack) | 5.x | Server state management and caching |
+| Axios | 1.x | HTTP client for API requests |
+| Socket.io-client | 4.x | WebSocket client for real-time events |
+| WebRTC | Browser Native | P2P video/audio communication |
+| Web Crypto API | Browser Native | ECDH key exchange + AES-GCM encryption |
+| Monaco Editor | 4.x | VS Code-powered code editor component |
+| React Hot Toast | 2.x | Toast notification system |
+| Lucide React | 0.5x | Icon library |
+| Canvas Confetti | 1.x | Celebration animation on session completion |
+| Date-fns | 4.x | Date formatting and manipulation |
+
+---
+
+# 06. SYSTEM DESIGN
+
+## 6.1 UML Diagrams
+
+### 6.1.1 Use Case Diagram
+
+```
+                    ╔══════════════════════════════════════════╗
+                    ║           TALENT IQ SYSTEM               ║
+                    ║                                          ║
+  ┌───────────┐     ║  ○ Register / Login                      ║
+  │           │─────╫─▶○ Forgot / Reset Password               ║
+  │           │     ║  ○ View Dashboard                        ║
+  │Interviewer│─────╫─▶○ Create Instant Session                ║
+  │  (Host)   │─────╫─▶○ Schedule Interview                    ║
+  │           │─────╫─▶○ Invite Participant via Email          ║
+  │           │─────╫─▶○ Start Video Call                      ║
+  │           │─────╫─▶○ Write & Sync Code (Encrypted)         ║
+  │           │─────╫─▶○ Execute Code (JS/Python/Java)         ║
+  │           │─────╫─▶○ Chat in Session                       ║
+  │           │─────╫─▶○ Share Screen                          ║
+  │           │─────╫─▶○ End Session                           ║
+  │           │─────╫─▶○ Submit Feedback (Rating + Review)     ║
+  └───────────┘     ║                                          ║
+                    ║                                          ║
+  ┌───────────┐     ║  ○ Join Session via Meeting Code         ║
+  │           │─────╫─▶○ Start Video Call                      ║
+  │ Candidate │─────╫─▶○ Write & Sync Code (Encrypted)         ║
+  │(Participant)────╫─▶○ Execute Code                          ║
+  │           │─────╫─▶○ Chat in Session                       ║
+  │           │─────╫─▶○ Submit Feedback                       ║
+  │           │─────╫─▶○ View Notifications                    ║
+  └───────────┘     ║                                          ║
+                    ║                                          ║
+  ┌───────────┐     ║  ○ View All Users                        ║
+  │           │─────╫─▶○ Ban / Unban User                      ║
+  │   Admin   │─────╫─▶○ View All Sessions                     ║
+  │           │─────╫─▶○ Force End Session                     ║
+  │           │─────╫─▶○ View Analytics Dashboard              ║
+  └───────────┘     ║  ○ View Completion Rate & Trends         ║
+                    ╚══════════════════════════════════════════╝
+```
+
+---
+
+### 6.1.2 Activity Diagram — Complete Session Flow
+
+```
+  ┌─────────────────────────────────────────────────────────────┐
+  │                    SESSION ACTIVITY FLOW                     │
+  └─────────────────────────────────────────────────────────────┘
+
+  [START]
+     │
+     ▼
+  [User Opens Browser → https://interview-platform-iota-seven.vercel.app]
+     │
+     ▼
+  [Login / Register]
+     │
+     ├──── New User ────▶ [Register with Name, Email, Password]
+     │                              │
+     │                              ▼
+     │                   [JWT Token Issued → Stored in localStorage]
+     │
+     ▼
+  [Dashboard Page]
+     │
+     ├──────────────────────────────────────────────────────────┐
+     │                                                          │
+     ▼                                                          ▼
+  [Create Session]                                    [Join via Meeting Code]
+     │                                                          │
+     ▼                                                          ▼
+  [Select Problem + Difficulty]                    [Enter 9-char Code e.g. ABC-123-XYZ]
+     │                                                          │
+     ▼                                                          │
+  [Optional: Enter Invite Email]                               │
+     │                                                          │
+     ▼                                                          │
+  [Email Sent with Join Link]                                  │
+     │                                                          │
+     └──────────────────────┬───────────────────────────────────┘
+                            │
+                            ▼
+                   [Session Page Loads]
+                            │
+                            ▼
+                   [Socket.io Connects to Server]
+                            │
+                            ▼
+                   [join-room event emitted]
+                            │
+                   ┌────────┴────────┐
+                   ▼                 ▼
+            [First User]      [Second User Joins]
+            [Waits...]        [existing-users event]
+                                     │
+                                     ▼
+                            [WebRTC Handshake Begins]
+                                     │
+                            ┌────────┴────────┐
+                            ▼                 ▼
+                     [ECDH Key Exchange]  [ICE Candidates]
+                            │                 │
+                            ▼                 ▼
+                     [Shared AES Key]   [P2P Connection]
+                            │                 │
+                            └────────┬────────┘
+                                     │
+                                     ▼
+                            [Session Active]
+                            ┌────────────────┐
+                            │ Video/Audio    │
+                            │ Code Editor    │
+                            │ Encrypted Sync │
+                            │ Chat           │
+                            │ Code Execution │
+                            └────────────────┘
+                                     │
+                                     ▼
+                            [Host Clicks "End Session"]
+                                     │
+                                     ▼
+                            [Session Status → "completed"]
+                                     │
+                                     ▼
+                            [Feedback Modal (Both Users)]
+                                     │
+                            ┌────────┴────────┐
+                            ▼                 ▼
+                     [Submit Rating]   [Submit Rating]
+                     [+ Review]        [+ Review]
+                            │
+                            ▼
+                         [Dashboard]
+                            │
+                         [END]
+```
+
+---
+
+### 6.1.3 Sequence Diagram — WebRTC Connection Establishment
+
+```
+  User A (Host)        Socket Server         User B (Participant)
+       │                    │                        │
+       │── connect() ───────▶│                        │
+       │◀── connected ───────│                        │
+       │                    │                        │
+       │── join-room(A) ────▶│                        │
+       │◀── existing-users   │                        │
+       │    (empty list)     │                        │
+       │                    │                        │── connect() ──▶│
+       │                    │                        │◀── connected ──│
+       │                    │                        │
+       │                    │◀── join-room(B) ────────│
+       │◀── user-joined(B) ──│                        │
+       │                    │── existing-users(A) ───▶│
+       │                    │                        │
+       │ [Create RTCPeerConnection]                  │
+       │── offer ───────────▶│── offer ──────────────▶│
+       │                    │              [Create RTCPeerConnection]
+       │                    │              [setRemoteDescription(offer)]
+       │                    │              [createAnswer()]
+       │◀── answer ──────────│◀── answer ──────────────│
+       │ [setRemoteDescription(answer)]              │
+       │                    │                        │
+       │── ice-candidate ───▶│── ice-candidate ───────▶│
+       │◀── ice-candidate ───│◀── ice-candidate ────────│
+       │                    │                        │
+       │ [P2P Connection Established — Direct Browser to Browser]
+       │◀══════════════════════════════════════════════│
+       │         Video + Audio + Data (P2P)           │
+```
+
+---
+
+### 6.1.4 Sequence Diagram — E2E Encrypted Code Sync
+
+```
+  User A (Host)          Socket Server          User B (Participant)
+       │                      │                        │
+       │── e2e-public-key(A) ─▶│── e2e-public-key(A) ──▶│
+       │                      │                        │ [ECDH: derive sharedKey from A's pubKey]
+       │◀─ e2e-public-key(B) ──│◀─ e2e-public-key(B) ───│
+       │ [ECDH: derive sharedKey from B's pubKey]       │
+       │                      │                        │
+       │ [Both now have same AES-GCM 256-bit key]       │
+       │                      │                        │
+       │ [User A types code]   │                        │
+       │ [encrypt(code, AES)]  │                        │
+       │── code-change(enc) ──▶│── code-change(enc) ───▶│
+       │                      │                  [decrypt(enc, AES)]
+       │                      │                  [Editor updates]
+       │                      │                        │
+       │── code-cursor(ln,col)─▶│── code-cursor ────────▶│
+       │                      │              [Remote cursor shown]
+       │                      │                        │
+       │ [User A runs code]    │                        │
+       │── POST /api/code/run ─────────────────────────▶│ (to server)
+       │◀─ { output: "..." } ──────────────────────────│
+       │ [Output shown in panel]                        │
+```
+
+---
+
+### 6.1.5 Sequence Diagram — Authentication Flow
+
+```
+  Browser (React)          Express API           MongoDB Atlas
+       │                       │                      │
+       │── POST /auth/signup ──▶│                      │
+       │   {name, email, pass}  │                      │
+       │                       │── findOne({email}) ──▶│
+       │                       │◀── null (not found) ──│
+       │                       │── bcrypt.hash(pass) ──│ (10 rounds)
+       │                       │── User.create() ──────▶│
+       │                       │◀── user document ──────│
+       │                       │── jwt.sign(userId) ───│
+       │◀── {user, token} ──────│                      │
+       │ [Store token in localStorage]                 │
+       │                       │                      │
+       │── GET /auth/me ────────▶│                      │
+       │   Authorization: Bearer <token>               │
+       │                       │── jwt.verify(token) ──│
+       │                       │── User.findById() ────▶│
+       │                       │◀── user document ──────│
+       │◀── {user} ─────────────│                      │
+```
+
+---
+
+## 6.2 Database Design
+
+### 6.2.1 Data Dictionary
+
+The application uses MongoDB (NoSQL) with 4 collections: `users`, `sessions`, `feedbacks`, and `notifications`.
+
+---
+
+#### Collection: `users`
+
+| Field | Type | Required | Unique | Default | Description |
+|-------|------|----------|--------|---------|-------------|
+| `_id` | ObjectId | ✅ | ✅ | Auto | MongoDB primary key |
+| `name` | String | ✅ | ❌ | — | Full name of the user |
+| `email` | String | ✅ | ✅ | — | Email address (login identifier) |
+| `password` | String | ✅ | ❌ | — | Bcrypt hashed password (min 6 chars) |
+| `profileImage` | String | ❌ | ❌ | `""` | URL to profile picture |
+| `role` | String | ✅ | ❌ | `"user"` | Enum: `"user"` or `"admin"` |
+| `isActive` | Boolean | ✅ | ❌ | `true` | Account active/banned status |
+| `resetPasswordToken` | String | ❌ | ❌ | `null` | SHA-256 hashed reset token |
+| `resetPasswordExpires` | Date | ❌ | ❌ | `null` | Token expiry (1 hour from creation) |
+| `createdAt` | Date | ✅ | ❌ | Auto | Mongoose timestamp |
+| `updatedAt` | Date | ✅ | ❌ | Auto | Mongoose timestamp |
+
+**Indexes:** `email` (unique)
+
+**Pre-save Hook:** Password is automatically hashed with bcrypt (10 salt rounds) before saving.
+
+**Instance Method:** `comparePassword(candidatePassword)` — compares plain text with hashed password.
+
+---
+
+#### Collection: `sessions`
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `_id` | ObjectId | ✅ | Auto | MongoDB primary key |
+| `problem` | String | ✅ | — | Problem title or custom name |
+| `difficulty` | String | ✅ | — | Enum: `easy`, `medium`, `hard` |
+| `host` | ObjectId → User | ✅ | — | Session creator (interviewer) |
+| `participant` | ObjectId → User | ❌ | `null` | Joined participant (candidate) |
+| `status` | String | ✅ | `"active"` | Enum: `scheduled`, `active`, `completed`, `cancelled` |
+| `callId` | String | ❌ | `""` | WebRTC call identifier |
+| `meetingCode` | String | ✅ | Auto | Unique 9-char code (e.g. `ABC-123-XYZ`) |
+| `sessionType` | String | ✅ | `"instant"` | Enum: `instant`, `scheduled` |
+| `scheduledStartTime` | Date | ❌ | `null` | Planned start time for scheduled sessions |
+| `scheduledEndTime` | Date | ❌ | `null` | Planned end time |
+| `duration` | Number | ❌ | `60` | Duration in minutes |
+| `timezone` | String | ❌ | `"UTC"` | Timezone string |
+| `interviewer` | ObjectId → User | ❌ | `null` | Interviewer (for scheduled sessions) |
+| `candidate` | ObjectId → User | ❌ | `null` | Candidate (for scheduled sessions) |
+| `title` | String | ❌ | `""` | Custom session title |
+| `description` | String | ❌ | `""` | Session description |
+| `notes` | String | ❌ | `""` | Post-session notes |
+| `invitedEmails` | [String] | ❌ | `[]` | List of invited email addresses |
+| `reminderSent` | Boolean | ❌ | `false` | Whether reminder email was sent |
+| `actualStartTime` | Date | ❌ | `null` | Actual start time |
+| `actualEndTime` | Date | ❌ | `null` | Actual end time |
+| `recording.data` | String | ❌ | `null` | Base64 encoded video data |
+| `recording.mimeType` | String | ❌ | `"video/webm"` | Video MIME type |
+| `recording.size` | Number | ❌ | `null` | File size in bytes |
+| `recording.duration` | Number | ❌ | `null` | Recording duration in seconds |
+| `recording.uploadedAt` | Date | ❌ | `null` | Upload timestamp |
+| `recording.uploadedBy` | ObjectId → User | ❌ | `null` | Who uploaded the recording |
+| `createdAt` | Date | ✅ | Auto | Mongoose timestamp |
+| `updatedAt` | Date | ✅ | Auto | Mongoose timestamp |
+
+**Indexes:** `meetingCode` (unique, sparse)
+
+**Pre-save Hook:** Generates unique 9-character meeting code (format: `XXX-XXX-XXX`) before first save.
+
+---
+
+#### Collection: `feedbacks`
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `_id` | ObjectId | ✅ | MongoDB primary key |
+| `session` | ObjectId → Session | ✅ | Related session reference |
+| `givenBy` | ObjectId → User | ✅ | User who submitted the feedback |
+| `givenTo` | ObjectId → User | ✅ | User who received the feedback |
+| `rating` | Number | ✅ | Star rating: 1–5 (validated min/max) |
+| `review` | String | ❌ | Written review text (max 500 chars) |
+| `createdAt` | Date | ✅ | Mongoose timestamp |
+| `updatedAt` | Date | ✅ | Mongoose timestamp |
+
+**Indexes:** `{ session: 1, givenBy: 1 }` (unique) — prevents duplicate feedback per session per user.
+
+---
+
+#### Collection: `notifications`
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `_id` | ObjectId | ✅ | MongoDB primary key |
+| `user` | ObjectId → User | ✅ | Notification recipient |
+| `type` | String | ✅ | Enum: `meeting_invite`, `meeting_reminder`, `session_joined`, `session_ended` |
+| `title` | String | ✅ | Short notification heading |
+| `message` | String | ✅ | Full notification body text |
+| `session` | ObjectId → Session | ❌ | Related session (if applicable) |
+| `read` | Boolean | ✅ | Read status (default: `false`) |
+| `actionUrl` | String | ❌ | Deep link URL for navigation |
+| `createdAt` | Date | ✅ | Mongoose timestamp |
+
+**Indexes:** `{ user: 1, read: 1, createdAt: -1 }` — optimized for fetching unread notifications sorted by date.
+
+---
+
+### 6.2.2 Database Relationship Diagram
+
+```
+╔══════════════╗          ╔══════════════════════╗         ╔══════════════╗
+║    USERS     ║          ║       SESSIONS       ║         ║  FEEDBACKS   ║
+╠══════════════╣          ╠══════════════════════╣         ╠══════════════╣
+║ _id (PK)     ║◀────────║ host (FK)            ║         ║ _id (PK)     ║
+║ name         ║◀────────║ participant (FK)     ║◀──────  ║ session (FK) ║
+║ email        ║◀────────║ interviewer (FK)     ║         ║ givenBy (FK) ║──▶ USERS
+║ password     ║◀────────║ candidate (FK)       ║         ║ givenTo (FK) ║──▶ USERS
+║ role         ║         ║ _id (PK)              ║         ║ rating (1-5) ║
+║ isActive     ║         ║ problem               ║         ║ review       ║
+║ profileImage ║         ║ difficulty            ║         ╚══════════════╝
+╚══════════════╝         ║ status                ║
+        ▲                ║ meetingCode           ║
+        │                ║ sessionType           ║
+        │                ║ scheduledStartTime    ║
+╔══════════════╗         ║ recording { data }    ║
+║NOTIFICATIONS ║         ╚══════════════════════╝
+╠══════════════╣
+║ _id (PK)     ║
+║ user (FK)    ║──▶ USERS
+║ type         ║
+║ title        ║
+║ message      ║
+║ read         ║
+║ actionUrl    ║
+╚══════════════╝
+
+Relationships:
+  Session.host          → Users._id  (Many-to-One)
+  Session.participant   → Users._id  (Many-to-One)
+  Session.interviewer   → Users._id  (Many-to-One)
+  Session.candidate     → Users._id  (Many-to-One)
+  Feedback.session      → Sessions._id (Many-to-One)
+  Feedback.givenBy      → Users._id  (Many-to-One)
+  Feedback.givenTo      → Users._id  (Many-to-One)
+  Notification.user     → Users._id  (Many-to-One)
+  Notification.session  → Sessions._id (Many-to-One, optional)
+```
+
+---
+
+## 6.3 E-R Diagram
+
+```
+  ┌─────────────┐    creates (1:N)    ┌─────────────┐
+  │    USER     │────────────────────▶│   SESSION   │
+  │─────────────│                     │─────────────│
+  │ id (PK)     │    joins (1:N)      │ id (PK)     │
+  │ name        │────────────────────▶│ problem     │
+  │ email       │                     │ difficulty  │
+  │ password    │                     │ status      │
+  │ role        │                     │ meetingCode │
+  │ isActive    │                     │ sessionType │
+  └─────────────┘                     │ startTime   │
+         │                            └─────────────┘
+         │ receives (1:N)                    │
+         ▼                                   │ has (1:N)
+  ┌─────────────────┐                        ▼
+  │  NOTIFICATION   │              ┌─────────────────┐
+  │─────────────────│              │    FEEDBACK      │
+  │ id (PK)         │              │─────────────────│
+  │ userId (FK)     │              │ id (PK)          │
+  │ type            │              │ sessionId (FK)   │
+  │ title           │              │ givenBy (FK) ────┼──▶ USER
+  │ message         │              │ givenTo (FK) ────┼──▶ USER
+  │ read            │              │ rating (1-5)     │
+  │ actionUrl       │              │ review           │
+  └─────────────────┘              └─────────────────┘
+```
+
+**Cardinality:**
+- One USER can create many SESSIONS (1:N)
+- One USER can join many SESSIONS as participant (1:N)
+- One SESSION can have many FEEDBACKS (1:N)
+- One USER can give many FEEDBACKS (1:N)
+- One USER can receive many NOTIFICATIONS (1:N)
+
+---
+
+## 6.4 User Interface Design (System Layout)
+
+### Application Routes
+
+| Route | Component | Access |
+|-------|-----------|--------|
+| `/` | HomePage | Public |
+| `/auth` | AuthPage | Public (redirects if logged in) |
+| `/forgot-password` | ForgotPasswordPage | Public |
+| `/reset-password/:token` | ResetPasswordPage | Public |
+| `/dashboard` | DashboardPage | Authenticated |
+| `/problems` | ProblemsPage | Authenticated |
+| `/problem/:id` | ProblemPage | Authenticated |
+| `/session/:id` | SessionPage | Authenticated |
+| `/schedule` | SchedulePage | Authenticated |
+| `/admin` | AdminDashboardPage | Admin only |
+| `/admin/users` | AdminUsersPage | Admin only |
+| `/admin/sessions` | AdminSessionsPage | Admin only |
+| `/admin/analytics` | AdminAnalyticsPage | Admin only |
+
+---
+
+### Home Page Layout
+
+```
+╔══════════════════════════════════════════════════════════════╗
+║  NAVBAR: [Talent IQ Logo]              [Login] [Sign Up]     ║
+╠══════════════════════════════════════════════════════════════╣
+║                                                              ║
+║  HERO SECTION                                                ║
+║  ┌─────────────────────────┐  ┌──────────────────────────┐  ║
+║  │  Master Coding          │  │   [Hero Screenshot/      │  ║
+║  │  Interviews Together    │  │    Illustration]         │  ║
+║  │                         │  │                          │  ║
+║  │  [Get Started →]        │  │                          │  ║
+║  │  [View Problems]        │  │                          │  ║
+║  └─────────────────────────┘  └──────────────────────────┘  ║
+║                                                              ║
+║  FEATURES SECTION                                            ║
+║  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐  ║
+║  │ 📹 HD Video  │  │ 💻 Code Edit │  │ ⚡ Code Execute  │  ║
+║  │ Interviews   │  │ Real-time    │  │ JS/Python/Java   │  ║
+║  └──────────────┘  └──────────────┘  └──────────────────┘  ║
+║                                                              ║
+╠══════════════════════════════════════════════════════════════╣
+║  FOOTER: Links | © 2026 Talent IQ                           ║
+╚══════════════════════════════════════════════════════════════╝
+```
+
+---
+
+### Dashboard Page Layout
+
+```
+╔══════════════════════════════════════════════════════════════╗
+║  NAVBAR: [Logo] [Problems] [Dashboard] [Schedule] [🔔] [👤] ║
+╠══════════════════════════════════════════════════════════════╣
+║                                                              ║
+║  WELCOME SECTION                                             ║
+║  ┌──────────────────────────────────────────────────────┐   ║
+║  │  Welcome back, Vasudev! 👋                           │   ║
+║  │  [+ Create Session]  [Join Session]                  │   ║
+║  └──────────────────────────────────────────────────────┘   ║
+║                                                              ║
+║  STATS CARDS                                                 ║
+║  ┌──────────────┐  ┌──────────────┐                         ║
+║  │ 🟢 Active    │  │ 🏆 Total     │                         ║
+║  │ Sessions: 3  │  │ Sessions: 47 │                         ║
+║  │ [Live badge] │  │              │                         ║
+║  └──────────────┘  └──────────────┘                         ║
+║                                                              ║
+║  ACTIVE SESSIONS          RECENT SESSIONS                    ║
+║  ┌──────────────────┐     ┌──────────────────────────────┐  ║
+║  │ Session Card 1   │     │ Completed Session 1          │  ║
+║  │ Problem: Two Sum │     │ Problem: Binary Search       │  ║
+║  │ Host: John       │     │ Rating: ⭐⭐⭐⭐⭐           │  ║
+║  │ [Join →]         │     │ Date: Mar 23, 2026           │  ║
+║  └──────────────────┘     └──────────────────────────────┘  ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+```
+
+---
+
+### Session Page Layout (Desktop)
+
+```
+╔══════════════════════════════════════════════════════════════╗
+║  NAVBAR: [Logo] [Problems] [Dashboard] [Schedule] [🔔] [👤] ║
+╠══════════════════════════════════════════════════════════════╣
+║                                                              ║
+║  ┌─────────────────────────┬────────────────────────────┐   ║
+║  │  PROBLEM DESCRIPTION    │   VIDEO CALL PANEL         │   ║
+║  │  ─────────────────────  │   ──────────────────────   │   ║
+║  │  📝 Two Sum             │   ┌──────────┬──────────┐  │   ║
+║  │  Difficulty: 🟡 Medium  │   │ Remote   │  Local   │  │   ║
+║  │                         │   │ Video    │  Video   │  │   ║
+║  │  Given an array nums,   │   │ (John)   │  (You)   │  │   ║
+║  │  return indices of two  │   └──────────┴──────────┘  │   ║
+║  │  numbers that add up    │   [🎤] [📹] [🖥️] [📞 End] │   ║
+║  │  to target.             │                            │   ║
+║  │                         │   ┌────────────────────┐   │   ║
+║  │  Examples:              │   │  CHAT PANEL        │   │   ║
+║  │  Input: [2,7,11,15]     │   │  John: Hello!      │   │   ║
+║  │  Output: [0,1]          │   │  You: Hi there!    │   │   ║
+║  │                         │   │  [Type message...] │   │   ║
+║  │  Meeting Code:          │   └────────────────────┘   │   ║
+║  │  [ABC-123-XYZ] [Copy]   │                            │   ║
+║  ├─────────────────────────┤                            │   ║
+║  │  CODE EDITOR            │                            │   ║
+║  │  [JavaScript ▼] [🔒 E2E Encrypted]                  │   ║
+║  │  ┌─────────────────────────────────────────────┐    │   ║
+║  │  │  1  function twoSum(nums, target) {          │    │   ║
+║  │  │  2    // your code here                      │    │   ║
+║  │  │  3  }                                        │    │   ║
+║  │  │  📍 John's cursor (line 2)                   │    │   ║
+║  │  └─────────────────────────────────────────────┘    │   ║
+║  ├─────────────────────────┤                            │   ║
+║  │  OUTPUT PANEL           │                            │   ║
+║  │  [▶ Run Code]           │                            │   ║
+║  │  > [1, 0]               │                            │   ║
+║  └─────────────────────────┴────────────────────────────┘   ║
+╚══════════════════════════════════════════════════════════════╝
+```
+
+---
+
+### Admin Dashboard Layout
+
+```
+╔══════════════════════════════════════════════════════════════╗
+║  NAVBAR: [Logo] [Problems] [Dashboard] [Schedule] [Admin]   ║
+╠══════════════════════════════════════════════════════════════╣
+║                                                              ║
+║  Admin Dashboard                                             ║
+║  Manage users, sessions, and view analytics                  ║
+║                                                              ║
+║  STATS GRID (with count-up animation)                        ║
+║  ┌──────────────┐ ┌──────────────┐ ┌──────────┐ ┌────────┐ ║
+║  │ 👥 Total     │ │ 📹 Total     │ │ ✅ Done  │ │ 📈 New │ ║
+║  │ Users        │ │ Sessions     │ │ Sessions │ │ /Week  │ ║
+║  │    247       │ │    1,043     │ │    891   │ │    12  │ ║
+║  │ 198 active   │ │ 3 active now │ │ All time │ │ 7 days │ ║
+║  └──────────────┘ └──────────────┘ └──────────┘ └────────┘ ║
+║                                                              ║
+║  QUICK ACTIONS                                               ║
+║  ┌──────────────────┐ ┌──────────────────┐ ┌─────────────┐ ║
+║  │ 👥 User Mgmt     │ │ 📹 Session Mgmt  │ │ 📊 Analytics│ ║
+║  │ View & manage    │ │ Monitor sessions │ │ View trends │ ║
+║  └──────────────────┘ └──────────────────┘ └─────────────┘ ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+```
+
+---
+
+# 07. SYSTEM TESTING
+
+## 7.1 Unit Testing
+
+Unit testing verifies individual functions and modules in isolation. The project uses **Vitest** as the test runner with **fast-check** for property-based testing.
+
+**Test Files:**
+
+| Test File | Location | Tests | Framework |
+|-----------|----------|-------|-----------|
+| `authController.test.js` | `backend/src/controllers/` | 17 | Vitest |
+| `authController.pbt.test.js` | `backend/src/controllers/` | 1 (100 runs) | Vitest + fast-check |
+| `email.test.js` | `backend/src/lib/` | 15 | Vitest |
+| **Total** | | **33** | |
+
+**Run Tests:**
+```bash
+cd backend
+npm test
+```
+
+---
+
+### Unit Test Cases — Auth Controller
+
+| Test ID | Function | Input | Expected Output | Result |
+|---------|----------|-------|-----------------|--------|
+| UT-01 | `signup` | Valid name, email, password | 201 + user + token | ✅ Pass |
+| UT-02 | `signup` | Missing name | 400 "All fields required" | ✅ Pass |
+| UT-03 | `signup` | Password < 6 chars | 400 "Password too short" | ✅ Pass |
+| UT-04 | `signup` | Duplicate email | 400 "Email already exists" | ✅ Pass |
+| UT-05 | `login` | Valid credentials | 200 + user + token | ✅ Pass |
+| UT-06 | `login` | Wrong password | 400 "Invalid credentials" | ✅ Pass |
+| UT-07 | `login` | Non-existent email | 400 "Invalid credentials" | ✅ Pass |
+| UT-08 | `forgotPassword` | Valid email | 200 + token saved in DB | ✅ Pass |
+| UT-09 | `forgotPassword` | Missing email | 400 "Email required" | ✅ Pass |
+| UT-10 | `forgotPassword` | Non-existent email | 200 (security — no reveal) | ✅ Pass |
+| UT-11 | `forgotPassword` | Valid email | Token stored as SHA-256 hash | ✅ Pass |
+| UT-12 | `forgotPassword` | Valid email | Token expires in 1 hour | ✅ Pass |
+| UT-13 | `resetPassword` | Valid token + new password | 200 "Password reset successful" | ✅ Pass |
+| UT-14 | `resetPassword` | Expired token | 400 "Invalid or expired token" | ✅ Pass |
+| UT-15 | `resetPassword` | Password < 6 chars | 400 "Password too short" | ✅ Pass |
+| UT-16 | `getMe` | Valid JWT | 200 + user object | ✅ Pass |
+| UT-17 | `logout` | Any request | 200 + cookie cleared | ✅ Pass |
+
+---
+
+### Unit Test Cases — Email Module
+
+| Test ID | Function | Scenario | Expected | Result |
+|---------|----------|----------|----------|--------|
+| UT-18 | `sendEmail` | SMTP not configured | Returns `{skipped: true}` | ✅ Pass |
+| UT-19 | `emailTemplates.passwordReset` | With userName | Subject contains "Reset" | ✅ Pass |
+| UT-20 | `emailTemplates.passwordReset` | Without userName | Falls back to "Hi there!" | ✅ Pass |
+| UT-21 | `emailTemplates.passwordReset` | Any input | HTML contains reset URL | ✅ Pass |
+| UT-22 | `emailTemplates.meetingInvite` | Valid params | Subject contains host name | ✅ Pass |
+| UT-23 | `emailTemplates.meetingInvite` | Valid params | HTML contains meeting code | ✅ Pass |
+| UT-24 | `emailTemplates.meetingInvite` | Valid params | HTML contains join URL | ✅ Pass |
+| UT-25 | `emailTemplates.meetingReminder` | Valid params | Subject contains "Reminder" | ✅ Pass |
+
+---
+
+### Property-Based Test (PBT)
+
+Property-based testing uses **fast-check** to generate 100 random inputs and verify invariants.
+
+| Test ID | Property | Invariant | Runs | Result |
+|---------|----------|-----------|------|--------|
+| PBT-01 | `forgotPassword` with any string email | Response is always 200 or 400, never 500 | 100 | ✅ Pass |
+
+---
+
+## 7.2 Integration Testing
+
+Integration testing verifies that multiple components work together correctly.
+
+| Test ID | Scenario | Components Tested | Steps | Result |
+|---------|----------|-------------------|-------|--------|
+| IT-01 | Full signup flow | Auth API + MongoDB | POST /auth/signup → verify user in DB → GET /auth/me | ✅ Pass |
+| IT-02 | Full login flow | Auth API + JWT | POST /auth/login → verify token → use token in header | ✅ Pass |
+| IT-03 | Session creation | Session API + MongoDB | POST /api/sessions → verify meetingCode generated | ✅ Pass |
+| IT-04 | Join session | Session API + MongoDB | POST /api/sessions/:code/join → verify participant set | ✅ Pass |
+| IT-05 | Socket room join | Socket.io + Server | Connect → emit join-room → verify existing-users event | ✅ Pass |
+| IT-06 | ECDH key exchange | Web Crypto API + Socket | Exchange public keys → derive shared key → verify match | ✅ Pass |
+| IT-07 | Code encryption | Web Crypto API | Encrypt code → transmit → decrypt → verify match | ✅ Pass |
+| IT-08 | Feedback submission | Feedback API + MongoDB | POST /api/feedback → verify stored → GET feedback | ✅ Pass |
+| IT-09 | Notification creation | Notification API + MongoDB | Create notification → GET /api/notifications → verify | ✅ Pass |
+| IT-10 | Password reset flow | Auth API + Email + MongoDB | POST /forgot-password → verify token in DB → POST /reset-password | ✅ Pass |
+| IT-11 | Admin ban user | Admin API + MongoDB | PATCH /api/admin/users/:id/ban → verify isActive=false | ✅ Pass |
+| IT-12 | Code execution (JS) | Code Runner API | POST /api/code/run {js code} → verify output | ✅ Pass |
+| IT-13 | Code execution (Python) | Code Runner API | POST /api/code/run {python code} → verify output | ✅ Pass |
+
+---
+
+## 7.3 System Testing
+
+System testing verifies the complete end-to-end behavior of the application as a whole.
+
+### Functional System Tests
+
+| Test ID | Test Scenario | Steps | Expected | Result |
+|---------|---------------|-------|----------|--------|
+| ST-01 | User Registration | Open app → Sign Up → Fill form → Submit | Account created, redirected to dashboard | ✅ Pass |
+| ST-02 | User Login | Open app → Sign In → Enter credentials | JWT stored, dashboard shown | ✅ Pass |
+| ST-03 | Password Reset | Forgot Password → Enter email → Check email → Reset | Password updated, can login | ✅ Pass |
+| ST-04 | Create Session | Dashboard → Create Session → Select problem | Session created with meeting code | ✅ Pass |
+| ST-05 | Join Session | Enter meeting code → Join | Participant added to session | ✅ Pass |
+| ST-06 | Video Call | Two users in session | Both see each other's video | ✅ Pass |
+| ST-07 | Code Sync | User A types code | User B sees code in real-time | ✅ Pass |
+| ST-08 | Code Encryption | Inspect network traffic | Only encrypted bytes visible | ✅ Pass |
+| ST-09 | Remote Cursor | User A moves cursor | User B sees cursor position | ✅ Pass |
+| ST-10 | Chat | Send message in session | Other user receives instantly | ✅ Pass |
+| ST-11 | Run JS Code | Write JS → Click Run | Output shown in panel | ✅ Pass |
+| ST-12 | Run Python Code | Write Python → Click Run | Output shown in panel | ✅ Pass |
+| ST-13 | Run Java Code | Write Java → Click Run | Output shown in panel | ✅ Pass |
+| ST-14 | Screen Share | Click screen share button | Remote user sees screen | ✅ Pass |
+| ST-15 | End Session | Host clicks End Session | Status → completed | ✅ Pass |
+| ST-16 | Feedback Modal | Session ends | Both users see feedback form | ✅ Pass |
+| ST-17 | Submit Feedback | Rate + write review → Submit | Feedback saved in DB | ✅ Pass |
+| ST-18 | Schedule Interview | Schedule page → Fill form | Session created, email sent | ✅ Pass |
+| ST-19 | Notification Bell | Receive invite | Bell shows unread count | ✅ Pass |
+| ST-20 | Admin Ban User | Admin → Users → Ban | User cannot login | ✅ Pass |
+| ST-21 | Admin Analytics | Admin → Analytics | Charts and stats shown | ✅ Pass |
+| ST-22 | Theme Toggle | Click theme button | All components update colors | ✅ Pass |
+| ST-23 | Responsive Design | Open on mobile (375px) | Layout adapts correctly | ✅ Pass |
+| ST-24 | Show Password | Click eye icon on login | Password text visible | ✅ Pass |
+| ST-25 | Count-up Animation | Load dashboard/admin | Numbers animate from 0 | ✅ Pass |
+
+### Performance Tests
+
+| Test ID | Scenario | Metric | Result |
+|---------|----------|--------|--------|
+| PT-01 | Frontend build | Build time | < 30 seconds ✅ |
+| PT-02 | Page load (cold) | First Contentful Paint | < 2 seconds ✅ |
+| PT-03 | API response | GET /auth/me | < 200ms ✅ |
+| PT-04 | Code execution (JS) | Simple algorithm | < 100ms ✅ |
+| PT-05 | Socket latency | Code sync event | < 50ms (LAN) ✅ |
+
+### Security Tests
+
+| Test ID | Scenario | Expected | Result |
+|---------|----------|----------|--------|
+| SEC-01 | Access dashboard without login | Redirect to /auth | ✅ Pass |
+| SEC-02 | Access admin page as regular user | Redirect to /dashboard | ✅ Pass |
+| SEC-03 | Use expired JWT token | 401 Unauthorized | ✅ Pass |
+| SEC-04 | Submit feedback twice for same session | 400 Duplicate error | ✅ Pass |
+| SEC-05 | Inspect code-change socket event | Only encrypted bytes | ✅ Pass |
+| SEC-06 | SQL/NoSQL injection in login | Sanitized, no breach | ✅ Pass |
+
+---
+
+# 08. LIMITATIONS
+
+The following limitations exist in the current version (v1.0.0) of Talent IQ:
+
+| # | Limitation | Impact | Workaround |
+|---|------------|--------|------------|
+| 1 | **P2P Only (2 users max)** | Cannot support group interviews with 3+ participants | Use separate sessions for panel interviews |
+| 2 | **No TURN Server** | Users behind strict corporate firewalls or symmetric NAT may fail to connect via WebRTC | Use a network that allows WebRTC (most home/mobile networks work) |
+| 3 | **Render Free Tier Spin-down** | Server sleeps after 15 min of inactivity; first request takes 30–60 seconds | UptimeRobot pings server every 5 min to keep it awake |
+| 4 | **Recording Size Limit** | Recordings stored as base64 in MongoDB; MongoDB document limit imeout and 1MB output buffer limit mitigate this |
+| 8 | **Email Domain Restriction** | Resend free tier requires verified domain to send to arbitrary emails | Gmail SMTP fallback configured; or verify domain on Resend |
+| 9 | **No Offline Support** | Application requires active internet connection at all times | Not applicable for interview platform use case |
+| 10 | **Single Language per Session** | Code editor supports one language at a time per session | Switch language using the dropdown in the editor |
+
+---
+
+# 09. FUTURE ENHANCEMENT
+
+The following enhancements are planned for future versions of Talent IQ:
+
+| # | Enhancement | Description | Priority | Version |
+|---|-------------|-------------|----------|---------|
+| 1 | **TURN Server Integration** | Add Metered.ca or Coturn TURN server for reliable NAT traversal in all network conditions | High | v1.1 |
+| 2 | **Multi-user Sessions** | Support 3–5 participants using WebRTC SFU (Selective Forwarding Unit) architecture | High | v2.0 |
+| 3 | **AI Code Review** | Integrate OpenAI GPT API to provide real-time hints, code review, and complexity analysis | Medium | v1.2 |
+| 4 | **Session Replay** | Record and replay entire session including code changes, cursor movements, and chat | Medium | v1.2 |
+| 5 | **Cloud Recording Storage** | Migrate recordings from MongoDB base64 to Cloudinary or AWS S3 for unlimited storage | Medium | v1.1 |
+| 6 | **Mobile App** | Build React Native app for iOS and Android with full feature parity | Medium | v2.0 |
+| 7 | **OAuth Login** | Add Google and GitHub OAuth for one-click registration and login | Low | v1.1 |
+| 8 | **Whiteboard Tool** | Add a collaborative drawing/whiteboard panel alongside the code editor | Low | v1.3 |
+| 9 | **Interview Templates** | Pre-built interview templates with curated problem sets by topic and difficulty | Low | v1.2 |
+| 10 | **Analytics Export** | Allow admins to export analytics data as CSV/PDF reports | Low | v1.2 |
+| 11 | **Rate Limiting** | Add express-rate-limit middleware to prevent brute force attacks on auth endpoints | High | v1.1 |
+| 12 | **Security Headers** | Add Helmet.js middleware for CSP, X-Frame-Options, and other security headers | High | v1.1 |
+| 13 | **More Languages** | Add support for C++, Go, Rust, and TypeScript in the code runner | Medium | v1.2 |
+| 14 | **Interview Scoring** | Structured scoring rubric for interviewers (problem solving, code quality, communication) | Medium | v1.3 |
+
+---
+
+# 10. REFERENCES
+
+## 10.1 Webliography
+
+| # | Resource | URL | Accessed |
+|---|----------|-----|---------|
+| 1 | WebRTC Official Documentation | https://webrtc.org/getting-started/overview | 2025 |
+| 2 | MDN WebRTC API Reference | https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API | 2025 |
+| 3 | Socket.io Documentation v4 | https://socket.io/docs/v4 | 2025 |
+| 4 | Web Crypto API (MDN) | https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API | 2025 |
+| 5 | ECDH Key Agreement (MDN) | https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/deriveKey | 2025 |
+| 6 | Monaco Editor Documentation | https://microsoft.github.io/monaco-editor | 2025 |
+| 7 | React 19 Documentation | https://react.dev | 2025 |
+| 8 | Vite Documentation | https://vitejs.dev/guide | 2025 |
+| 9 | TailwindCSS Documentation | https://tailwindcss.com/docs | 2025 |
+| 10 | DaisyUI Components | https://daisyui.com/components | 2025 |
+| 11 | MongoDB Documentation | https://www.mongodb.com/docs | 2025 |
+| 12 | Mongoose ODM Documentation | https://mongoosejs.com/docs | 2025 |
+| 13 | Express.js Guide | https://expressjs.com/en/guide | 2025 |
+| 14 | Socket.io + WebRTC Tutorial | https://socket.io/docs/v4/webrtc | 2025 |
+| 15 | JWT Introduction | https://jwt.io/introduction | 2025 |
+| 16 | Bcrypt Algorithm | https://auth0.com/blog/hashing-in-action-understanding-bcrypt | 2025 |
+| 17 | Vitest Documentation | https://vitest.dev | 2025 |
+| 18 | fast-check (PBT) | https://fast-check.io | 2025 |
+| 19 | Render Deployment Docs | https://render.com/docs | 2025 |
+| 20 | Vercel Deployment Docs | https://vercel.com/docs | 2025 |
+| 21 | MongoDB Atlas Docs | https://www.mongodb.com/docs/atlas | 2025 |
+| 22 | Resend Email API | https://resend.com/docs | 2025 |
+| 23 | Eclipse Temurin JDK | https://adoptium.net | 2025 |
+| 24 | Python Official Documentation | https://docs.python.org/3 | 2025 |
+| 25 | Node.js vm Module | https://nodejs.org/api/vm.html | 2025 |
+| 26 | Node.js child_process | https://nodejs.org/api/child_process.html | 2025 |
+| 27 | React Query (TanStack) | https://tanstack.com/query/latest | 2025 |
+| 28 | Lucide React Icons | https://lucide.dev | 2025 |
+
+---
+
+## 10.2 Bibliography
+
+| # | Reference |
+|---|-----------|
+| 1 | Grigorik, I. (2013). *High Performance Browser Networking*. O'Reilly Media. |
+| 2 | Flanagan, D. (2020). *JavaScript: The Definitive Guide* (7th ed.). O'Reilly Media. |
+| 3 | Chodorow, K. (2013). *MongoDB: The Definitive Guide* (2nd ed.). O'Reilly Media. |
+| 4 | Cantelon, M., Harter, M., Holowaychuk, T., & Rajlich, N. (2014). *Node.js in Action*. Manning Publications. |
+| 5 | Banks, A., & Porcello, E. (2020). *Learning React* (2nd ed.). O'Reilly Media. |
+| 6 | Rescorla, E. (2018). *The Transport Layer Security (TLS) Protocol Version 1.3*. RFC 8446. IETF. |
+| 7 | Bergkvist, A., Burnett, D., Jennings, C., & Narayanan, A. (2021). *WebRTC 1.0: Real-Time Communication Between Browsers*. W3C Recommendation. |
+| 8 | Jones, M., Bradley, J., & Sakimura, N. (2015). *JSON Web Token (JWT)*. RFC 7519. IETF. |
+| 9 | Provos, N., & Mazières, D. (1999). *A Future-Adaptable Password Scheme*. USENIX Annual Technical Conference. |
+| 10 | Fowler, M. (2002). *Patterns of Enterprise Application Architecture*. Addison-Wesley Professional. |
+
+---
+
+*End of Document*
+
+---
+
+**Document Details:**
+
+| Field | Value |
+|-------|-------|
+| Document Title | Talent IQ — College Project Blackbook |
+| Version | 1.0.0 |
+| Prepared By | Vasudev Patil |
+| Academic Year | 2025–2026 |
+| Total Pages | ~50 pages |
+| Last Updated | March 2026 |
