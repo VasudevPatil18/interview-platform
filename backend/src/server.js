@@ -21,14 +21,18 @@ import codeRunnerRoutes from "./routes/codeRunnerRoutes.js";
 
 const app = express();
 
+const corsOptions = {
+  origin: true,
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
 // middleware
 app.use(express.json());
 app.use(cookieParser());
-// Allow all origins in production since frontend is on separate domain
-app.use(cors({
-  origin: true,
-  credentials: true,
-}));
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions)); // handle preflight for all routes
 
 // routes
 app.use("/api/auth", authRoutes);
