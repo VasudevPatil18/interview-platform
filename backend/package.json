@@ -26,7 +26,7 @@
     "nodemailer": "^8.0.1",
     "resend": "^4.0.0",
     "nodemon": "^3.1.11",
-    "socket.io": "^4.8.3"
+    "socket.io": "4.7.5"
   },
   "devDependencies": {
     "fast-check": "^4.5.3",
