@@ -173,7 +173,7 @@ function ScheduleInterviewModal({ isOpen, onClose, onSuccess }) {
                 </select>
               </div>
             </div>
-          )
+          )}
 
           {/* Candidate Email */}
           <div className="form-control">
