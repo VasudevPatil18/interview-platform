@@ -107,6 +107,12 @@ function Navbar() {
                   </li>
                 )}
                 <li>
+                  <Link to="/profile">
+                    <UserIcon className="size-4" />
+                    My Profile
+                  </Link>
+                </li>
+                <li>
                   <button onClick={logout} className="text-error">
                     <LogOutIcon className="size-4" />
                     Logout
@@ -232,6 +238,12 @@ function Navbar() {
                     <span className="badge badge-accent badge-sm">Admin</span>
                   </li>
                 )}
+                <li>
+                  <Link to="/profile">
+                    <UserIcon className="size-4" />
+                    My Profile
+                  </Link>
+                </li>
                 <li>
                   <button onClick={logout} className="text-error">
                     <LogOutIcon className="size-4" />

@@ -160,6 +160,7 @@ export async function getMe(req, res) {
         email: req.user.email,
         profileImage: req.user.profileImage,
         role: req.user.role,
+        phone: req.user.phone || null,
       },
     });
   } catch (error) {
