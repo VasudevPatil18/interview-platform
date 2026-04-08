@@ -17,6 +17,7 @@ import scheduleRoutes from "./routes/scheduleRoutes.js";
 import recordingRoutes from "./routes/recordingRoutes.js";
 import feedbackRoutes from "./routes/feedbackRoutes.js";
 import codeRunnerRoutes from "./routes/codeRunnerRoutes.js";
+import siteFeedbackRoutes from "./routes/siteFeedbackRoutes.js";
 
 
 const app = express();
@@ -43,6 +44,7 @@ app.use("/api/code", codeRunnerRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/schedule", scheduleRoutes);
+app.use("/api/site-feedback", siteFeedbackRoutes);
 
 app.get("/health", (req, res) => {
   res.status(200).json({ msg: "api is up and running" });

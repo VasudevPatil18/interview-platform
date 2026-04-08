@@ -168,6 +168,23 @@ function AdminDashboardPage() {
               </div>
             </div>
           </Link>
+
+          <Link
+            to="/admin/feedback"
+            className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow"
+          >
+            <div className="card-body">
+              <div className="flex items-center gap-4">
+                <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <span className="text-xl">💬</span>
+                </div>
+                <div>
+                  <h3 className="card-title text-lg">Site Feedback</h3>
+                  <p className="text-sm text-base-content/60">View user feedback</p>
+                </div>
+              </div>
+            </div>
+          </Link>
         </div>
 
         {/* Sessions by Difficulty */}

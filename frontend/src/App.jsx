@@ -15,6 +15,8 @@ import AdminDashboardPage from "./pages/AdminDashboardPage";
 import AdminUsersPage from "./pages/AdminUsersPage";
 import AdminSessionsPage from "./pages/AdminSessionsPage";
 import AdminAnalyticsPage from "./pages/AdminAnalyticsPage";
+import SiteFeedbackPage from "./pages/SiteFeedbackPage";
+import AdminFeedbackPage from "./pages/AdminFeedbackPage";
 
 function App() {
   const { isAuthenticated, loading, user } = useAuth();
@@ -42,6 +44,8 @@ function App() {
         <Route path="/admin/users" element={isAuthenticated && isAdmin ? <AdminUsersPage /> : <Navigate to={"/dashboard"} />} />
         <Route path="/admin/sessions" element={isAuthenticated && isAdmin ? <AdminSessionsPage /> : <Navigate to={"/dashboard"} />} />
         <Route path="/admin/analytics" element={isAuthenticated && isAdmin ? <AdminAnalyticsPage /> : <Navigate to={"/dashboard"} />} />
+        <Route path="/admin/feedback" element={isAuthenticated && isAdmin ? <AdminFeedbackPage /> : <Navigate to={"/dashboard"} />} />
+        <Route path="/feedback" element={isAuthenticated ? <SiteFeedbackPage /> : <Navigate to={"/auth"} />} />
       </Routes>
 
       <Toaster 
