@@ -103,6 +103,14 @@ export function useWebRTC(session, user, isHost, isParticipant) {
       if (pubKeyB64) {
         socketInstance.emit('e2e-public-key', { roomId: session._id, publicKey: pubKeyB64 });
       }
+      // If we are the host and stream is ready, send offer to the new participant
+      if (isHost) {
+        if (localStreamRef.current) {
+          createOfferRef.current(userData.socketId);
+        } else {
+          pendingOfferRef.current = userData.socketId;
+        }
+      }
     });
 
     socketInstance.on('user-left', (userData) => {
