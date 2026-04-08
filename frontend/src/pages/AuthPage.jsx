@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
+import toast from "react-hot-toast";
 import { 
   ArrowRightIcon, 
   CheckCircle2Icon, 
@@ -18,6 +20,8 @@ import {
 function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState(null);
+  const captchaRef = useRef(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -26,20 +30,28 @@ function AuthPage() {
   const { login, signup } = useAuth();
   const navigate = useNavigate();
 
+  // hCaptcha site key — this is the free test key, works on localhost and any domain
+  // Replace with your own from hcaptcha.com for production
+  const HCAPTCHA_SITE_KEY = import.meta.env.VITE_HCAPTCHA_SITE_KEY || "10000000-ffff-ffff-ffff-000000000001";
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
+    if (!captchaToken) {
+      toast.error("Please complete the CAPTCHA");
+      return;
+    }
+
     if (isLogin) {
       const result = await login(formData.email, formData.password);
-      if (result.success) {
-        navigate("/dashboard");
-      }
+      if (result.success) navigate("/dashboard");
     } else {
       const result = await signup(formData.name, formData.email, formData.password);
-      if (result.success) {
-        navigate("/dashboard");
-      }
+      if (result.success) navigate("/dashboard");
     }
+    // Reset captcha after submit
+    captchaRef.current?.resetCaptcha();
+    setCaptchaToken(null);
   };
 
   const handleChange = (e) => {
@@ -218,9 +230,21 @@ function AuthPage() {
                 )}
               </div>
 
+              {/* CAPTCHA */}
+              <div className="flex justify-center">
+                <HCaptcha
+                  ref={captchaRef}
+                  sitekey={HCAPTCHA_SITE_KEY}
+                  onVerify={(token) => setCaptchaToken(token)}
+                  onExpire={() => setCaptchaToken(null)}
+                  theme="dark"
+                />
+              </div>
+
               <button
                 type="submit"
                 className="btn btn-primary w-full text-base md:text-lg font-bold gap-2 group"
+                disabled={!captchaToken}
               >
                 {isLogin ? "Sign In" : "Create Account"}
                 <ArrowRightIcon className="size-5 group-hover:translate-x-1 transition-transform" />

@@ -208,6 +208,8 @@ export function useWebRTC(session, user, isHost, isParticipant) {
           const emptyStream = new MediaStream();
           localStreamRef.current = emptyStream;
           setLocalStream(emptyStream);
+          setIsVideoEnabled(false);
+          setIsAudioEnabled(false);
           if (error.name === 'NotAllowedError') {
             toast.error('Camera/microphone access denied. Please allow permissions and refresh.');
           } else {
