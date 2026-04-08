@@ -98,12 +98,11 @@ export function useWebRTC(session, user, isHost, isParticipant) {
     socketInstance.on('user-joined', (userData) => {
       setRemoteUser(userData);
       toast.success(`${userData.userName} joined the call`);
-      // Re-send our public key to the new peer
       const pubKeyB64 = getPublicKeyB64();
       if (pubKeyB64) {
         socketInstance.emit('e2e-public-key', { roomId: session._id, publicKey: pubKeyB64 });
       }
-      // If we are the host and stream is ready, send offer to the new participant
+      // Host sends offer to the new participant
       if (isHost) {
         if (localStreamRef.current) {
           createOfferRef.current(userData.socketId);
@@ -228,8 +227,9 @@ export function useWebRTC(session, user, isHost, isParticipant) {
 
       // Fire pending offer now that stream (or fallback) is ready
       if (pendingOfferRef.current) {
-        createOfferRef.current(pendingOfferRef.current);
+        const pending = pendingOfferRef.current;
         pendingOfferRef.current = null;
+        setTimeout(() => createOfferRef.current(pending), 100);
       }
       setIsConnecting(false);
     };
@@ -302,9 +302,9 @@ export function useWebRTC(session, user, isHost, isParticipant) {
   handleOfferRef.current = async (offer, remoteSocketId) => {
     const sock = socketRef.current;
 
-    // Wait up to 5s for stream to be ready before handling offer
+    // Wait up to 10s for stream to be ready before handling offer
     let attempts = 0;
-    while (!localStreamRef.current && attempts < 50) {
+    while (!localStreamRef.current && attempts < 100) {
       await new Promise((r) => setTimeout(r, 100));
       attempts++;
     }
