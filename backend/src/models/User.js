@@ -38,6 +38,18 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    phone: {
+      type: String,
+      default: null,
+    },
+    phoneOtp: {
+      type: String,
+      default: null,
+    },
+    phoneOtpExpires: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true } // createdAt, updatedAt
 );

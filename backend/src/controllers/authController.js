@@ -4,6 +4,12 @@ import crypto from "crypto";
 import mongoose from "mongoose";
 import { ENV } from "../lib/env.js";
 import { sendEmail, emailTemplates } from "../lib/email.js";
+import twilio from "twilio";
+
+const getTwilioClient = () => {
+  if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN) return null;
+  return twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+};
 
 const generateToken = (userId) => {
   return jwt.sign({ userId }, ENV.JWT_SECRET, { expiresIn: "7d" });
@@ -280,6 +286,102 @@ export async function resetPassword(req, res) {
     res.status(200).json({ message: "Password reset successful. You can now login with your new password." });
   } catch (error) {
     console.error("Error in resetPassword:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+// Send OTP to phone number
+export async function sendPhoneOtp(req, res) {
+  try {
+    const { phone } = req.body;
+    if (!phone) return res.status(400).json({ message: "Phone number is required" });
+
+    // Normalize phone — must be E.164 format e.g. +919876543210
+    const normalized = phone.startsWith("+") ? phone : `+${phone}`;
+
+    const user = await User.findOne({ phone: normalized });
+    if (!user) {
+      return res.status(404).json({ message: "No account found with this phone number" });
+    }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const hashedOtp = crypto.createHash("sha256").update(otp).digest("hex");
+
+    user.phoneOtp = hashedOtp;
+    user.phoneOtpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+    await user.save();
+
+    const client = getTwilioClient();
+    if (!client) {
+      // Dev fallback — log OTP
+      console.log(`\n📱 OTP for ${normalized}: ${otp}\n`);
+      return res.status(200).json({
+        message: "OTP sent (dev mode — check server logs)",
+        devOtp: ENV.NODE_ENV === "development" ? otp : undefined,
+      });
+    }
+
+    await client.messages.create({
+      body: `Your Talent IQ password reset OTP is: ${otp}. Valid for 10 minutes. Do not share this with anyone.`,
+      from: process.env.TWILIO_PHONE_NUMBER,
+      to: normalized,
+    });
+
+    res.status(200).json({ message: "OTP sent to your phone number" });
+  } catch (error) {
+    console.error("Error sending OTP:", error);
+    res.status(500).json({ message: "Failed to send OTP. Please try again." });
+  }
+}
+
+// Verify OTP and reset password
+export async function resetPasswordWithOtp(req, res) {
+  try {
+    const { phone, otp, password } = req.body;
+
+    if (!phone || !otp || !password) {
+      return res.status(400).json({ message: "Phone, OTP, and new password are required" });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
+    }
+
+    const normalized = phone.startsWith("+") ? phone : `+${phone}`;
+    const hashedOtp = crypto.createHash("sha256").update(otp).digest("hex");
+
+    const user = await User.findOne({
+      phone: normalized,
+      phoneOtp: hashedOtp,
+      phoneOtpExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+
+    user.password = password;
+    user.phoneOtp = null;
+    user.phoneOtpExpires = null;
+    await user.save();
+
+    res.status(200).json({ message: "Password reset successful. You can now login." });
+  } catch (error) {
+    console.error("Error in resetPasswordWithOtp:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+// Save/update phone number (authenticated)
+export async function updatePhone(req, res) {
+  try {
+    const { phone } = req.body;
+    if (!phone) return res.status(400).json({ message: "Phone number is required" });
+
+    const normalized = phone.startsWith("+") ? phone : `+${phone}`;
+    await User.findByIdAndUpdate(req.user._id, { phone: normalized });
+    res.status(200).json({ message: "Phone number updated" });
+  } catch (error) {
     res.status(500).json({ message: "Internal Server Error" });
   }
 }
