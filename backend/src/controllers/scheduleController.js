@@ -1,6 +1,7 @@
 import Session from "../models/Session.js";
 import User from "../models/User.js";
 import { sendEmail, emailTemplates } from "../lib/email.js";
+import { sendSMS, smsTemplates } from "../lib/sms.js";
 import { createNotification } from "./notificationController.js";
 import { ENV } from "../lib/env.js";
 
@@ -186,6 +187,18 @@ Join the interview: ${joinUrl}
       text: emailContent.text,
     });
 
+    // Send SMS to candidate if they have a phone number
+    if (candidate.phone) {
+      sendSMS(candidate.phone, smsTemplates.interviewScheduled({
+        interviewerName: req.user.name,
+        problem,
+        difficulty,
+        scheduledTime: startTime.toLocaleString(),
+        meetingCode: session.meetingCode,
+        joinUrl,
+      })).catch(() => {});
+    }
+
     // Create notification for candidate
     await createNotification({
       userId: candidate._id,
@@ -365,6 +378,15 @@ export async function cancelScheduledInterview(req, res) {
       html: emailContent.html,
       text: emailContent.text,
     });
+
+    // Send SMS to other party
+    if (otherParty.phone) {
+      sendSMS(otherParty.phone, smsTemplates.interviewCancelled({
+        cancelledBy,
+        scheduledTime: session.scheduledStartTime.toLocaleString(),
+        reason,
+      })).catch(() => {});
+    }
 
     res.status(200).json({ message: "Interview cancelled successfully" });
   } catch (error) {

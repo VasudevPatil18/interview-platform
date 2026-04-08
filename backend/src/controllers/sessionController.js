@@ -2,6 +2,7 @@ import Session from "../models/Session.js";
 import User from "../models/User.js";
 import mongoose from "mongoose";
 import { sendEmail, emailTemplates } from "../lib/email.js";
+import { sendSMS, smsTemplates } from "../lib/sms.js";
 import { createNotification } from "./notificationController.js";
 import { ENV } from "../lib/env.js";
 
@@ -53,9 +54,19 @@ export async function createSession(req, res) {
         }
       }).catch(err => console.log("Email error:", err.message));
 
-      // Check if invited user exists and create notification (async)
+      // Check if invited user exists — send SMS + notification
       User.findOne({ email: inviteEmail }).then(invitedUser => {
         if (invitedUser) {
+          // Send SMS if user has phone
+          if (invitedUser.phone) {
+            sendSMS(invitedUser.phone, smsTemplates.meetingInvite({
+              hostName: req.user.name,
+              problem,
+              difficulty,
+              meetingCode: session.meetingCode,
+              joinUrl,
+            })).catch(() => {});
+          }
           createNotification({
             userId: invitedUser._id,
             type: "meeting_invite",
@@ -163,7 +174,18 @@ export async function joinSession(req, res) {
     session.participant = userId;
     await session.save();
 
-    // Send notification asynchronously (don't wait for it)
+    // Send notification + SMS to host when participant joins
+    const joinUrl = `${ENV.CLIENT_URL}/session/${session.meetingCode || session._id}`;
+    User.findById(session.host).then(host => {
+      if (host?.phone) {
+        sendSMS(host.phone, smsTemplates.participantJoined({
+          participantName: req.user.name,
+          problem: session.problem,
+          joinUrl,
+        })).catch(() => {});
+      }
+    }).catch(() => {});
+
     createNotification({
       userId: session.host,
       type: "session_joined",
@@ -203,8 +225,14 @@ export async function endSession(req, res) {
     session.status = "completed";
     await session.save();
 
-    // Notify participant asynchronously (don't wait)
+    // Notify participant via notification + SMS
     if (session.participant) {
+      User.findById(session.participant).then(participant => {
+        if (participant?.phone) {
+          sendSMS(participant.phone, smsTemplates.sessionEnded({ problem: session.problem })).catch(() => {});
+        }
+      }).catch(() => {});
+
       createNotification({
         userId: session.participant,
         type: "session_ended",
