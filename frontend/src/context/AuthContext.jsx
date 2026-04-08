@@ -36,9 +36,9 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const signup = async (name, email, password) => {
+  const signup = async (name, email, password, phone) => {
     try {
-      const res = await axios.post("/auth/signup", { name, email, password });
+      const res = await axios.post("/auth/signup", { name, email, password, phone });
       localStorage.setItem("token", res.data.token);
       setUser(res.data.user);
       toast.success("Account created successfully!");

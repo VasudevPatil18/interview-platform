@@ -26,6 +26,7 @@ function AuthPage() {
     name: "",
     email: "",
     password: "",
+    phone: "",
   });
   const { login, signup } = useAuth();
   const navigate = useNavigate();
@@ -46,7 +47,7 @@ function AuthPage() {
       const result = await login(formData.email, formData.password);
       if (result.success) navigate("/dashboard");
     } else {
-      const result = await signup(formData.name, formData.email, formData.password);
+      const result = await signup(formData.name, formData.email, formData.password, formData.phone);
       if (result.success) navigate("/dashboard");
     }
     // Reset captcha after submit
@@ -170,6 +171,28 @@ function AuthPage() {
                   />
                 </div>
               )}
+
+              {!isLogin && (
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text font-semibold flex items-center gap-2 text-sm md:text-base">
+                      📱 Phone Number
+                    </span>
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    required={!isLogin}
+                    className="input input-bordered w-full focus:input-primary text-sm md:text-base"
+                    placeholder="+91 9876543210"
+                  />
+                  <label className="label">
+                    <span className="label-text-alt text-base-content/50 text-xs">Include country code — used for SMS OTP password reset</span>
+                  </label>
+                </div>
+              )}
               
               <div className="form-control">
                 <label className="label">
@@ -260,7 +283,12 @@ function AuthPage() {
                 {isLogin ? "Don't have an account?" : "Already have an account?"}
               </p>
               <button
-                onClick={() => setIsLogin(!isLogin)}
+                onClick={() => {
+                setIsLogin(!isLogin);
+                setFormData({ name: "", email: "", password: "", phone: "" });
+                setCaptchaToken(null);
+                captchaRef.current?.resetCaptcha();
+              }}
                 className="btn btn-outline btn-primary w-full text-sm md:text-base"
               >
                 {isLogin ? "Sign Up" : "Sign In"}

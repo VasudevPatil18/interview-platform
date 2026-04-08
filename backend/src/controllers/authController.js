@@ -17,36 +17,26 @@ const generateToken = (userId) => {
 
 export async function signup(req, res) {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, phone } = req.body;
 
-    console.log("=== SIGNUP ATTEMPT ===");
-    console.log("Request body:", { name, email, passwordLength: password?.length });
-    console.log("Database connected:", mongoose.connection.readyState === 1);
-
-    if (!name || !email || !password) {
-      console.log("❌ Missing required fields");
-      return res.status(400).json({ message: "All fields are required" });
+    if (!name || !email || !password || !phone) {
+      return res.status(400).json({ message: "All fields are required including phone number" });
     }
 
     if (password.length < 6) {
-      console.log("❌ Password too short");
       return res.status(400).json({ message: "Password must be at least 6 characters" });
     }
 
-    console.log("Checking for existing user...");
-    const existingUser = await User.findOne({ email });
+    // Normalize phone to E.164
+    const normalizedPhone = phone.startsWith("+") ? phone : `+${phone}`;
 
+    const existingUser = await User.findOne({ $or: [{ email }, { phone: normalizedPhone }] });
     if (existingUser) {
-      console.log("❌ Email already exists:", email);
-      return res.status(400).json({ message: "Email already exists" });
+      if (existingUser.email === email) return res.status(400).json({ message: "Email already exists" });
+      return res.status(400).json({ message: "Phone number already registered" });
     }
 
-    console.log("Creating new user...");
-    const user = await User.create({ name, email, password });
-    console.log("✅ User created successfully!");
-    console.log("   ID:", user._id);
-    console.log("   Name:", user.name);
-    console.log("   Email:", user.email);
+    const user = await User.create({ name, email, password, phone: normalizedPhone });
 
     const token = generateToken(user._id);
 
@@ -54,10 +44,9 @@ export async function signup(req, res) {
       httpOnly: true,
       secure: ENV.NODE_ENV === "production",
       sameSite: ENV.NODE_ENV === "production" ? "none" : "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    console.log("✅ Signup successful, sending response");
     res.status(201).json({
       user: {
         _id: user._id,
@@ -65,30 +54,15 @@ export async function signup(req, res) {
         email: user.email,
         profileImage: user.profileImage,
         role: user.role,
+        phone: user.phone,
       },
       token,
     });
   } catch (error) {
-    console.error("=== SIGNUP ERROR ===");
-    console.error("Error name:", error.name);
-    console.error("Error message:", error.message);
-    console.error("Error code:", error.code);
-    
-    if (error.code === 11000) {
-      console.error("❌ Duplicate key error - email already exists");
-      return res.status(400).json({ message: "Email already exists" });
-    }
-    
-    if (error.name === 'ValidationError') {
-      console.error("❌ Validation error:", error.message);
-      return res.status(400).json({ message: error.message });
-    }
-    
-    console.error("Full error:", error);
-    res.status(500).json({ 
-      message: "Internal Server Error", 
-      error: ENV.NODE_ENV === "development" ? error.message : "Registration failed"
-    });
+    console.error("Signup error:", error.message);
+    if (error.code === 11000) return res.status(400).json({ message: "Email or phone already exists" });
+    if (error.name === "ValidationError") return res.status(400).json({ message: error.message });
+    res.status(500).json({ message: "Internal Server Error" });
   }
 }
 
