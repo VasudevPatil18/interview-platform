@@ -3,15 +3,8 @@ import mongoose from "mongoose";
 // Generate a unique 9-character meeting code (e.g., ABC-123-XYZ)
 const generateMeetingCode = () => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let code = '';
-  for (let i = 0; i < 9; i++) {
-    if (i === 3 || i === 6) {
-      code += '-';
-    } else {
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-  }
-  return code;
+  const part = () => Array.from({ length: 3 }, () => chars.charAt(Math.floor(Math.random() * chars.length))).join('');
+  return `${part()}-${part()}-${part()}`;
 };
 
 const sessionSchema = new mongoose.Schema(
