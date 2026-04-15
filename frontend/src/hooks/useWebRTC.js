@@ -98,11 +98,12 @@ export function useWebRTC(session, user, isHost, isParticipant) {
     socketInstance.on('user-joined', (userData) => {
       setRemoteUser(userData);
       toast.success(`${userData.userName} joined the call`);
+      // Reset key exchange so new peer can exchange keys
+      keyExchangeDoneRef.current = false;
       const pubKeyB64 = getPublicKeyB64();
       if (pubKeyB64) {
         socketInstance.emit('e2e-public-key', { roomId: session._id, publicKey: pubKeyB64 });
       }
-      // Host sends offer to the new participant
       if (isHost) {
         if (localStreamRef.current) {
           createOfferRef.current(userData.socketId);

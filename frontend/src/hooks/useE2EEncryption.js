@@ -104,11 +104,19 @@ export function useE2EEncryption() {
   }, []);
 
   const decrypt = useCallback(async (b64) => {
-    if (!sharedKeyRef.current) return b64;
+    if (!sharedKeyRef.current) {
+      // Wait up to 5 seconds for key exchange to complete
+      let waited = 0;
+      while (!sharedKeyRef.current && waited < 50) {
+        await new Promise((r) => setTimeout(r, 100));
+        waited++;
+      }
+      if (!sharedKeyRef.current) return b64; // still no key, return as-is
+    }
     try {
       return await decryptText(sharedKeyRef.current, b64);
     } catch {
-      return b64; // if decryption fails, return as-is
+      return b64;
     }
   }, []);
 
