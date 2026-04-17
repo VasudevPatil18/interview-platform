@@ -52,10 +52,13 @@ function WebRTCVideoCall({ user, webrtc, currentCode, currentLanguage }) {
     }
   }, [localStream]);
 
-  // Set remote video stream
+  // Set remote video stream — must call play() to bypass autoplay policy
   useEffect(() => {
     if (remoteVideoRef.current && remoteStream) {
       remoteVideoRef.current.srcObject = remoteStream;
+      remoteVideoRef.current.play().catch((e) => {
+        console.warn('Remote video autoplay blocked:', e);
+      });
     }
   }, [remoteStream]);
 
@@ -180,12 +183,26 @@ function WebRTCVideoCall({ user, webrtc, currentCode, currentLanguage }) {
           {/* Remote Video (or placeholder) */}
           <div className="relative bg-base-300 rounded-lg overflow-hidden">
             {remoteStream ? (
-              <video
-                ref={remoteVideoRef}
-                autoPlay
-                playsInline
-                className="w-full h-full object-cover"
-              />
+              <>
+                <video
+                  ref={remoteVideoRef}
+                  autoPlay
+                  playsInline
+                  className="w-full h-full object-cover"
+                />
+                {/* Hidden audio element as fallback for audio-only streams */}
+                <audio
+                  ref={(el) => {
+                    if (el && remoteStream) {
+                      el.srcObject = remoteStream;
+                      el.play().catch(() => {});
+                    }
+                  }}
+                  autoPlay
+                  playsInline
+                  style={{ display: 'none' }}
+                />
+              </>
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <div className="text-center">
