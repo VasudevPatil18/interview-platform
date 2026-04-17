@@ -479,6 +479,7 @@ export function useWebRTC(session, user, isHost, isParticipant) {
   return {
     localStream,
     remoteStream,
+    screenStream: screenStream.current,
     isAudioEnabled,
     isVideoEnabled,
     isScreenSharing,

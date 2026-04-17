@@ -31,6 +31,7 @@ function WebRTCVideoCall({ user, webrtc, currentCode, currentLanguage }) {
   const {
     localStream,
     remoteStream,
+    screenStream,
     isAudioEnabled,
     isVideoEnabled,
     isScreenSharing,
@@ -45,12 +46,15 @@ function WebRTCVideoCall({ user, webrtc, currentCode, currentLanguage }) {
     leaveCall,
   } = webrtc;
 
-  // Set local video stream
+  // Set local video — show screen stream when sharing, otherwise camera
   useEffect(() => {
-    if (localVideoRef.current && localStream) {
+    if (!localVideoRef.current) return;
+    if (isScreenSharing && screenStream) {
+      localVideoRef.current.srcObject = screenStream;
+    } else if (localStream) {
       localVideoRef.current.srcObject = localStream;
     }
-  }, [localStream]);
+  }, [localStream, isScreenSharing, screenStream]);
 
   // Set remote video stream — must call play() to bypass autoplay policy
   useEffect(() => {
@@ -240,13 +244,13 @@ function WebRTCVideoCall({ user, webrtc, currentCode, currentLanguage }) {
 
           {/* Local Video */}
           <div className="relative bg-base-300 rounded-lg overflow-hidden">
-            {localStream && isVideoEnabled ? (
+            {(isScreenSharing && screenStream) || (localStream && isVideoEnabled) ? (
               <video
                 ref={localVideoRef}
                 autoPlay
                 playsInline
                 muted
-                className="w-full h-full object-cover mirror"
+                className={`w-full h-full object-cover ${!isScreenSharing ? 'mirror' : ''}`}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
