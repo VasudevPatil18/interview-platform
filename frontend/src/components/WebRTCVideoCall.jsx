@@ -62,6 +62,24 @@ function WebRTCVideoCall({ user, webrtc, currentCode, currentLanguage }) {
     }
   }, [remoteStream]);
 
+  // Listen for track changes on remote stream (e.g. screen share replaceTrack)
+  useEffect(() => {
+    if (!remoteStream) return;
+    const handleTrackChange = () => {
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = null;
+        remoteVideoRef.current.srcObject = remoteStream;
+        remoteVideoRef.current.play().catch(() => {});
+      }
+    };
+    remoteStream.addEventListener('addtrack', handleTrackChange);
+    remoteStream.addEventListener('removetrack', handleTrackChange);
+    return () => {
+      remoteStream.removeEventListener('addtrack', handleTrackChange);
+      remoteStream.removeEventListener('removetrack', handleTrackChange);
+    };
+  }, [remoteStream]);
+
   // Auto-scroll chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });

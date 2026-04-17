@@ -183,6 +183,34 @@ export function useWebRTC(session, user, isHost, isParticipant) {
       console.log(`User ${userId} ${enabled ? 'enabled' : 'disabled'} video`);
     });
 
+    // When remote user starts/stops screen share, force video element refresh
+    socketInstance.on('user-screen-share-started', () => {
+      setTimeout(() => {
+        if (peerConnection.current) {
+          const receivers = peerConnection.current.getReceivers();
+          const videoReceiver = receivers.find((r) => r.track?.kind === 'video');
+          if (videoReceiver?.track) {
+            const newStream = new MediaStream([videoReceiver.track]);
+            // Also add audio tracks
+            receivers.filter((r) => r.track?.kind === 'audio').forEach((r) => newStream.addTrack(r.track));
+            setRemoteStream(newStream);
+          }
+        }
+      }, 500);
+    });
+
+    socketInstance.on('user-screen-share-stopped', () => {
+      setTimeout(() => {
+        if (peerConnection.current) {
+          const receivers = peerConnection.current.getReceivers();
+          const tracks = receivers.map((r) => r.track).filter(Boolean);
+          if (tracks.length > 0) {
+            setRemoteStream(new MediaStream(tracks));
+          }
+        }
+      }, 500);
+    });
+
     socketRef.current = socketInstance;
     setSocket(socketInstance);
 
@@ -261,7 +289,10 @@ export function useWebRTC(session, user, isHost, isParticipant) {
     }
 
     pc.ontrack = (event) => {
-      setRemoteStream(event.streams[0]);
+      // Always create a new MediaStream reference so React re-renders the video element
+      const newStream = new MediaStream();
+      event.streams[0].getTracks().forEach((track) => newStream.addTrack(track));
+      setRemoteStream(newStream);
     };
 
     // BUG FIX #4: use socketRef.current instead of stale socket state
