@@ -353,20 +353,25 @@ export function useWebRTC(session, user, isHost, isParticipant) {
     }
   }, [session]);
 
-  // BUG FIX #9: define stopScreenShare before startScreenShare and use a ref
   const stopScreenShare = useCallback(() => {
     if (!screenStream.current) return;
     screenStream.current.getTracks().forEach((track) => track.stop());
-
-    const stream = localStreamRef.current;
-    if (peerConnection.current && stream) {
-      const videoTrack = stream.getVideoTracks()[0];
-      const sender = peerConnection.current.getSenders().find((s) => s.track?.kind === 'video');
-      if (sender && videoTrack) sender.replaceTrack(videoTrack);
-    }
-
     screenStream.current = null;
     setIsScreenSharing(false);
+
+    // Restore camera track or add a black track placeholder
+    if (peerConnection.current) {
+      const sender = peerConnection.current.getSenders().find((s) => s.track?.kind === 'video');
+      if (sender) {
+        const cameraTrack = localStreamRef.current?.getVideoTracks()[0];
+        if (cameraTrack) {
+          sender.replaceTrack(cameraTrack).catch(() => {});
+        } else {
+          // No camera — replace with null to keep sender alive
+          sender.replaceTrack(null).catch(() => {});
+        }
+      }
+    }
 
     if (socketRef.current && session) {
       socketRef.current.emit('stop-screen-share', { roomId: session._id });
@@ -377,14 +382,24 @@ export function useWebRTC(session, user, isHost, isParticipant) {
   stopScreenShareRef.current = stopScreenShare;
 
   const startScreenShare = useCallback(async () => {
-    try {
-      const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-      screenStream.current = stream;
+    // If already sharing, stop first
+    if (screenStream.current) {
+      stopScreenShareRef.current();
+      return;
+    }
 
-      if (peerConnection.current && localStreamRef.current) {
-        const videoTrack = stream.getVideoTracks()[0];
+    try {
+      const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+      screenStream.current = stream;
+      const screenTrack = stream.getVideoTracks()[0];
+
+      if (peerConnection.current) {
         const sender = peerConnection.current.getSenders().find((s) => s.track?.kind === 'video');
-        if (sender) sender.replaceTrack(videoTrack);
+        if (sender) {
+          await sender.replaceTrack(screenTrack).catch(() => {});
+        } else {
+          peerConnection.current.addTrack(screenTrack, stream);
+        }
       }
 
       setIsScreenSharing(true);
@@ -393,11 +408,13 @@ export function useWebRTC(session, user, isHost, isParticipant) {
         socketRef.current.emit('start-screen-share', { roomId: session._id });
       }
 
-      // BUG FIX #9: use ref so this always calls the current stopScreenShare
-      stream.getVideoTracks()[0].onended = () => stopScreenShareRef.current();
+      screenTrack.onended = () => stopScreenShareRef.current();
     } catch (error) {
-      console.error('Error starting screen share:', error);
-      toast.error('Failed to start screen sharing');
+      screenStream.current = null;
+      if (error.name !== 'NotAllowedError') {
+        console.error('Error starting screen share:', error);
+        toast.error('Failed to start screen sharing');
+      }
     }
   }, [session]);
 
