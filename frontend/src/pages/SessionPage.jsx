@@ -120,7 +120,34 @@ function SessionPage() {
   const renderMobileContent = () => {
     switch (activeTab) {
       case "problem":
-        return <div className="p-4">Problem Content...</div>;
+        return (
+          <div className="h-full overflow-y-auto p-4 space-y-4">
+            <div className="bg-base-100 rounded-xl p-5 border border-base-300">
+              <h1 className="text-2xl font-bold mb-1">{session?.problem || "Loading..."}</h1>
+              {problemData?.category && <p className="text-base-content/60 text-sm mb-3">{problemData.category}</p>}
+              {!problemData && session?.problem && (
+                <p className="text-base-content/60 text-sm">Free-form session — write any code you like.</p>
+              )}
+              {problemData?.description && (
+                <p className="text-base-content/90 leading-relaxed">{problemData.description.text}</p>
+              )}
+            </div>
+            {problemData?.examples?.length > 0 && (
+              <div className="bg-base-100 rounded-xl p-5 border border-base-300">
+                <h2 className="font-bold mb-3">Examples</h2>
+                {problemData.examples.map((ex, i) => (
+                  <div key={i} className="bg-base-200 rounded-lg p-3 font-mono text-sm mb-2">
+                    <div><span className="text-primary font-bold">Input: </span>{ex.input}</div>
+                    <div><span className="text-secondary font-bold">Output: </span>{ex.output}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {session?.meetingCode && (isHost || isParticipant) && (
+              <MeetingCodeDisplay meetingCode={session.meetingCode} sessionId={session._id} />
+            )}
+          </div>
+        );
       case "code":
         return (
           <div className="flex flex-col h-full">

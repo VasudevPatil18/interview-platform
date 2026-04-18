@@ -10,8 +10,8 @@ import { protectRoute } from "../middleware/protectRoute.js";
 const router = express.Router();
 
 router.get("/", protectRoute, getNotifications);
-router.patch("/:id/read", protectRoute, markAsRead);
 router.patch("/read-all", protectRoute, markAllAsRead);
+router.patch("/:id/read", protectRoute, markAsRead);
 router.delete("/:id", protectRoute, deleteNotification);
 
 export default router;

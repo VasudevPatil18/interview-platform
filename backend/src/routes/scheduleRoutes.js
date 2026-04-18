@@ -12,8 +12,8 @@ import {
 const router = express.Router();
 
 router.post("/", protectRoute, scheduleInterview);
-router.get("/", protectRoute, getScheduledInterviews);
 router.get("/upcoming", protectRoute, getUpcomingInterviews);
+router.get("/", protectRoute, getScheduledInterviews);
 router.patch("/:id", protectRoute, updateScheduledInterview);
 router.delete("/:id", protectRoute, cancelScheduledInterview);
 router.post("/:id/start", protectRoute, startScheduledInterview);

@@ -33,6 +33,7 @@ export function useWebRTC(session, user, isHost, isParticipant) {
 
   const peerConnection = useRef(null);
   const screenStream = useRef(null);
+  const [screenStreamState, setScreenStreamState] = useState(null);
   const connectionTimeoutRef = useRef(null);
   const socketRef = useRef(null);
   const localStreamRef = useRef(null);
@@ -388,6 +389,7 @@ export function useWebRTC(session, user, isHost, isParticipant) {
     if (!screenStream.current) return;
     screenStream.current.getTracks().forEach((track) => track.stop());
     screenStream.current = null;
+    setScreenStreamState(null);
     setIsScreenSharing(false);
 
     // Restore camera track or add a black track placeholder
@@ -422,6 +424,7 @@ export function useWebRTC(session, user, isHost, isParticipant) {
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
       screenStream.current = stream;
+      setScreenStreamState(stream);
       const screenTrack = stream.getVideoTracks()[0];
 
       if (peerConnection.current) {
@@ -442,6 +445,7 @@ export function useWebRTC(session, user, isHost, isParticipant) {
       screenTrack.onended = () => stopScreenShareRef.current();
     } catch (error) {
       screenStream.current = null;
+      setScreenStreamState(null);
       if (error.name !== 'NotAllowedError') {
         console.error('Error starting screen share:', error);
         toast.error('Failed to start screen sharing');
@@ -479,7 +483,7 @@ export function useWebRTC(session, user, isHost, isParticipant) {
   return {
     localStream,
     remoteStream,
-    screenStream: screenStream.current,
+    screenStream: screenStreamState,
     isAudioEnabled,
     isVideoEnabled,
     isScreenSharing,
