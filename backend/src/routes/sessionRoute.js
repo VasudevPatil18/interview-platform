@@ -3,6 +3,7 @@ import { protectRoute } from "../middleware/protectRoute.js";
 import {
   createSession,
   endSession,
+  deleteSession,
   getActiveSessions,
   getMyRecentSessions,
   getSessionById,
@@ -19,6 +20,7 @@ router.get("/my-recent", protectRoute, getMyRecentSessions);
 router.get("/:id", protectRoute, getSessionById);
 router.post("/:id/join", protectRoute, joinSession);
 router.post("/:id/end", protectRoute, endSession);
+router.delete("/:id", protectRoute, deleteSession);
 router.post("/:id/remind", protectRoute, sendMeetingReminder);
 
 export default router;

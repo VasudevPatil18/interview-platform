@@ -330,3 +330,26 @@ export async function sendMeetingReminder(req, res) {
     res.status(500).json({ message: "Internal Server Error" });
   }
 }
+
+export async function deleteSession(req, res) {
+  try {
+    const { id } = req.params;
+    const userId = req.user._id;
+
+    const session = await Session.findById(id);
+    if (!session) return res.status(404).json({ message: "Session not found" });
+
+    // Only host or participant can delete from their history
+    const isHost = session.host.toString() === userId.toString();
+    const isParticipant = session.participant?.toString() === userId.toString();
+    if (!isHost && !isParticipant) {
+      return res.status(403).json({ message: "Not authorized to delete this session" });
+    }
+
+    await Session.findByIdAndDelete(id);
+    res.status(200).json({ message: "Session deleted" });
+  } catch (error) {
+    console.log("Error in deleteSession:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
