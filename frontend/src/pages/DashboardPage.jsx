@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
 import { useState } from "react";
-import { useActiveSessions, useCreateSession, useMyRecentSessions, useDeleteSession } from "../hooks/useSessions";
+import { useActiveSessions, useCreateSession, useMyRecentSessions, useDeleteSession, useMyReceivedFeedbacks } from "../hooks/useSessions";
 
 import Navbar from "../components/Navbar";
 import WelcomeSection from "../components/WelcomeSection";
@@ -24,6 +24,7 @@ function DashboardPage() {
 
   const { data: activeSessionsData, isLoading: loadingActiveSessions } = useActiveSessions();
   const { data: recentSessionsData, isLoading: loadingRecentSessions } = useMyRecentSessions();
+  const { data: feedbacksData } = useMyReceivedFeedbacks();
 
   const handleCreateRoom = (inviteEmail, finalConfig) => {
     const config = finalConfig || roomConfig;
@@ -49,6 +50,7 @@ function DashboardPage() {
 
   const activeSessions = activeSessionsData?.sessions || [];
   const recentSessions = recentSessionsData?.sessions || [];
+  const receivedFeedbacks = feedbacksData?.feedbacks || {};
 
   const isUserInSession = (session) => {
     if (!user?._id) return false;
@@ -85,6 +87,7 @@ function DashboardPage() {
             isLoading={loadingRecentSessions}
             onDelete={(id) => deleteSessionMutation.mutate(id)}
             deletingId={deleteSessionMutation.isPending ? deleteSessionMutation.variables : null}
+            receivedFeedbacks={receivedFeedbacks}
           />
         </div>
       </div>

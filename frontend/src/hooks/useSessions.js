@@ -76,3 +76,10 @@ export const useDeleteSession = () => {
     onError: (error) => toast.error(error.response?.data?.message || "Failed to delete session"),
   });
 };
+
+export const useMyReceivedFeedbacks = () => {
+  return useQuery({
+    queryKey: ["myReceivedFeedbacks"],
+    queryFn: sessionApi.getMyReceivedFeedbacks,
+  });
+};

@@ -33,4 +33,9 @@ export const sessionApi = {
     const response = await axiosInstance.delete(`/sessions/${id}`);
     return response.data;
   },
+
+  getMyReceivedFeedbacks: async () => {
+    const response = await axiosInstance.get("/feedback/my-received");
+    return response.data;
+  },
 };

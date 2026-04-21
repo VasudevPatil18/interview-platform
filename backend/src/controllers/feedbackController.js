@@ -93,3 +93,24 @@ export async function getSessionFeedback(req, res) {
     res.status(500).json({ message: "Server error" });
   }
 }
+
+export async function getMyReceivedFeedbacks(req, res) {
+  try {
+    const userId = req.user._id;
+
+    const feedbacks = await Feedback.find({ givenTo: userId })
+      .populate("givenBy", "name")
+      .lean();
+
+    // key by sessionId for easy lookup on frontend
+    const map = {};
+    for (const fb of feedbacks) {
+      map[fb.session.toString()] = fb;
+    }
+
+    res.json({ feedbacks: map });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+}
