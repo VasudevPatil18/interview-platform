@@ -1,8 +1,8 @@
-import { Code2, Clock, Users, Trophy, Loader } from "lucide-react";
+import { Code2, Clock, Users, Trophy, Loader, Trash2 } from "lucide-react";
 import { getDifficultyBadgeClass } from "../lib/utils";
 import { formatDistanceToNow } from "date-fns";
 
-function RecentSessions({ sessions, isLoading }) {
+function RecentSessions({ sessions, isLoading, onDelete, deletingId }) {
   return (
     <div className="card bg-base-100 border-2 border-accent/20 hover:border-accent/30 mt-8">
       <div className="card-body">
@@ -78,9 +78,23 @@ function RecentSessions({ sessions, isLoading }) {
 
                   <div className="flex items-center justify-between pt-3 border-t border-base-300">
                     <span className="text-xs font-semibold opacity-80 uppercase">Completed</span>
-                    <span className="text-xs opacity-40">
-                      {new Date(session.updatedAt).toLocaleDateString()}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs opacity-40">
+                        {new Date(session.updatedAt).toLocaleDateString()}
+                      </span>
+                      <button
+                        onClick={() => onDelete && onDelete(session._id)}
+                        disabled={deletingId === session._id}
+                        className="btn btn-ghost btn-xs text-error hover:bg-error/10"
+                        title="Remove session"
+                      >
+                        {deletingId === session._id ? (
+                          <Loader className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

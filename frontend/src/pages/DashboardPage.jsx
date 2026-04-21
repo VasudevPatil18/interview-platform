@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
 import { useState } from "react";
-import { useActiveSessions, useCreateSession, useMyRecentSessions } from "../hooks/useSessions";
+import { useActiveSessions, useCreateSession, useMyRecentSessions, useDeleteSession } from "../hooks/useSessions";
 
 import Navbar from "../components/Navbar";
 import WelcomeSection from "../components/WelcomeSection";
@@ -20,6 +20,7 @@ function DashboardPage() {
   const [roomConfig, setRoomConfig] = useState({ problem: "", difficulty: "" });
 
   const createSessionMutation = useCreateSession();
+  const deleteSessionMutation = useDeleteSession();
 
   const { data: activeSessionsData, isLoading: loadingActiveSessions } = useActiveSessions();
   const { data: recentSessionsData, isLoading: loadingRecentSessions } = useMyRecentSessions();
@@ -79,7 +80,12 @@ function DashboardPage() {
             />
           </div>
 
-          <RecentSessions sessions={recentSessions} isLoading={loadingRecentSessions} />
+          <RecentSessions
+            sessions={recentSessions}
+            isLoading={loadingRecentSessions}
+            onDelete={(id) => deleteSessionMutation.mutate(id)}
+            deletingId={deleteSessionMutation.isPending ? deleteSessionMutation.variables : null}
+          />
         </div>
       </div>
 
